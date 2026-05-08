@@ -5,6 +5,7 @@
         "git add": true,
         "git commit": true,
         "git push": true,
-        "npx -y archimate-mcp-server@latest": true
+        "npx -y archimate-mcp-server@latest": true,
+        "git -C \"C:\\Users\\lpetrache\\repos\\Hackathon26\"": true
     }
 }
