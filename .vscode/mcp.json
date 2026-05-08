@@ -1,0 +1,17 @@
+{
+    "servers": {
+        "igp-ontwikkel-readonly": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "@modelcontextprotocol/server-postgres",
+                "postgresql://hackathon:hackathon@localhost:5432/igp_ontwikkel"
+            ],
+            "env": {
+                "DEBUG": "false"
+            },
+            "type": "stdio"
+        }
+    },
+    "inputs": []
+}
