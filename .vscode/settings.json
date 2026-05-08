@@ -6,6 +6,7 @@
         "git commit": true,
         "git push": true,
         "npx -y archimate-mcp-server@latest": true,
-        "git -C \"C:\\Users\\lpetrache\\repos\\Hackathon26\"": true
+        "git -C \"C:\\Users\\lpetrache\\repos\\Hackathon26\"": true,
+        "Move-Item": true
     }
 }
