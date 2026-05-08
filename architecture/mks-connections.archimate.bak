@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<archimate:model xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:archimate="http://www.archimatetool.com/archimate" name="mks-connections" id="id-6d5d36edf92a414ba7f2b78e79149197" version="5.0.0">
+  <folder name="Strategy" id="id-926b38523bd4424f9975eca2ab0d0938" type="strategy"/>
+  <folder name="Business" id="id-78e4955b8525478080df73ec529e3df4" type="business"/>
+  <folder name="Application" id="id-7674c18da70648f583aa73057d273f82" type="application">
+    <element xsi:type="archimate:ApplicationComponent" name="MCP Test Box" id="id-ab20f8a39610fa34fc70728c3e1bfdb2">
+      <documentation>Simple smoke test element to verify the ArchiMate MCP server is working correctly.</documentation>
+    </element>
+  </folder>
+  <folder name="Technology &amp; Physical" id="id-f2d1144a6d9a47719e4de63f36620dc3" type="technology"/>
+  <folder name="Motivation" id="id-6d2f32de0d09415bac66b00c6139672a" type="motivation"/>
+  <folder name="Implementation &amp; Migration" id="id-d576610c3b9e4e99966038265dcc2081" type="implementation_migration"/>
+  <folder name="Other" id="id-0914a63495de4b0b8e56835920a1a6a4" type="other"/>
+  <folder name="Relations" id="id-ac97f21843ce42d880b5ac7a2fafa2e9" type="relations"/>
+  <folder name="Views" id="id-2d18d4422037431d8c58a7ededbf4242" type="diagrams">
+    <element xsi:type="archimate:ArchimateDiagramModel" name="Default View" id="id-6424c61816dd4af19d5aafb85235697e">
+      <child xsi:type="archimate:DiagramObject" id="id-e95b1ba782b77533f606d5fd06148868" archimateElement="id-ab20f8a39610fa34fc70728c3e1bfdb2">
+        <bounds x="100" y="100" width="120" height="55"/>
+      </child>
+    </element>
+  </folder>
+</archimate:model>

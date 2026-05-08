@@ -1,5 +1,17 @@
 {
     "servers": {
+        "igp-ontwikkel-admin": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "@modelcontextprotocol/server-postgres",
+                "postgresql://postgres:postgres@localhost:5432/igp_ontwikkel"
+            ],
+            "env": {
+                "DEBUG": "false"
+            },
+            "type": "stdio"
+        },
         "archimate": {
             "command": "npx",
             "args": [
