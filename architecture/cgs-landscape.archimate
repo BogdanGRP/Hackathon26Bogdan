@@ -1,0 +1,292 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<archimate:model xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:archimate="http://www.archimatetool.com/archimate" name="CGS Service Landscape" id="id-cabaeae05a32ea6f7792cfdd0de9e4e1" version="5.0.0">
+  <folder name="Strategy" id="id-f4ae84da2b063a70dab988a1952d2e86" type="strategy"/>
+  <folder name="Business" id="id-3b69f2a062e90928f666ae21c15ab618" type="business"/>
+  <folder name="Application" id="id-15ec1625e2326c55024cc28a115bc755" type="application">
+    <element xsi:type="archimate:ApplicationComponent" name="iBurgerzaken" id="id-1b18ad6df3e6978280153d3aab3513e8">
+      <documentation>Burgerzaken 2.0 — municipal citizen records system. Top consumer: 42 production services.</documentation>
+    </element>
+    <element xsi:type="archimate:ApplicationComponent" name="CIPERS" id="id-0b8e63cbd086f78e47a2e79864cf7340">
+      <documentation>CiPers — citizen persons administration. 11 production services.</documentation>
+    </element>
+    <element xsi:type="archimate:ApplicationComponent" name="CZA" id="id-5c89766015cb30c176dbf918f3a7aab1">
+      <documentation>CiVision Zaakafhandeling — case handling system. 30 production services.</documentation>
+    </element>
+    <element xsi:type="archimate:ApplicationComponent" name="WebNext" id="id-7a964ab15819acdde697260f45e5023e">
+      <documentation>WebNext Zaaksysteem — web-based case management. 20 production services.</documentation>
+    </element>
+    <element xsi:type="archimate:ApplicationComponent" name="Corsa" id="id-5888122e2a868fa81bff49342a7d0912">
+      <documentation>BCT Corsa — document and case management DMS. 16 production services.</documentation>
+    </element>
+    <element xsi:type="archimate:ApplicationComponent" name="Alfresco" id="id-3fa6200013590f2508186a7e584bdad8">
+      <documentation>Alfresco DMS — document management system. 9 production services.</documentation>
+    </element>
+    <element xsi:type="archimate:ApplicationComponent" name="CWIZ" id="id-16d63f2785fb90fa323323142488fb80">
+      <documentation>CiVision Samenlevingszaken — social affairs platform. 25 production services.</documentation>
+    </element>
+    <element xsi:type="archimate:ApplicationComponent" name="iSamenleving" id="id-06501439875759b07b9a1a2636df734a">
+      <documentation>iSamenleving application — integrated social domain. 22 production services.</documentation>
+    </element>
+    <element xsi:type="archimate:ApplicationComponent" name="CMO" id="id-94c17186c2989b6f7cf0889dd253be4a">
+      <documentation>CiVision Maatschappelijke Ondersteuning — social support (WMO). 9 production services.</documentation>
+    </element>
+    <element xsi:type="archimate:ApplicationComponent" name="CBB" id="id-98e5c9fd9a7d4e99bfc36bfc3ff09f10">
+      <documentation>CiVision Belastingen — municipal tax system. 31 production services.</documentation>
+    </element>
+    <element xsi:type="archimate:ApplicationComponent" name="CIN" id="id-16508f7c1878c298d283cb4fe2a87c1e">
+      <documentation>CiVision Innen — debt collection and enforcement. 12 production services.</documentation>
+    </element>
+    <element xsi:type="archimate:ApplicationComponent" name="CMD" id="id-ecc5a19fe247aaab0b7740d2f3ef210c">
+      <documentation>CiVision Middelen — financial management (CMD). 8 production services.</documentation>
+    </element>
+    <element xsi:type="archimate:ApplicationComponent" name="CBR" id="id-be59bce948a3d30e0f8ee20e2f6ed69d">
+      <documentation>CiVision Basisregistratie — base registrations (BAG/WOZ). 10 production services.</documentation>
+    </element>
+    <element xsi:type="archimate:ApplicationComponent" name="CGA" id="id-9253ecb89d09686d8d9112ec25612a31">
+      <documentation>CiVision Adressen en Gebouwen — addresses and buildings (BAG). 8 production services.</documentation>
+    </element>
+    <element xsi:type="archimate:ApplicationComponent" name="CKD" id="id-db8ef8bf23942b67fa7ef7807655ae43">
+      <documentation>CiVision Kadaster — land registry system (BRK). 8 production services.</documentation>
+    </element>
+    <element xsi:type="archimate:ApplicationComponent" name="FrontOffice" id="id-f37c92b6fed7f8fd5c34da32d175ffb8">
+      <documentation>Front Office — citizen-facing front office portal. 20 production services.</documentation>
+    </element>
+    <element xsi:type="archimate:ApplicationComponent" name="CPT" id="id-a701c49a2f05cf7a3e196fee6e3ab182">
+      <documentation>CiVision Portaal — staff-facing municipal portal. 8 production services.</documentation>
+    </element>
+    <element xsi:type="archimate:ApplicationComponent" name="CMG" id="id-04ee053a487d9d9347bcfccdef091a48">
+      <documentation>CiVision Makelaar Gegevens — data broker / integration mediator. 13 production services.</documentation>
+    </element>
+    <element xsi:type="archimate:ApplicationComponent" name="CIR" id="id-d7baa901b608d6b051a40db56d516ea5">
+      <documentation>CiVision Integraal Raadplegen (NodeJS) — integrated data consultation, NodeJS implementation. 8 production services.</documentation>
+    </element>
+    <element xsi:type="archimate:ApplicationComponent" name="CML" id="id-a86a4a5e07b1e6d695f898bf04a8512d">
+      <documentation>CiVision Makelaar Landelijke Voorzieningen — national registry broker. 27 production services.</documentation>
+    </element>
+    <element xsi:type="archimate:ApplicationComponent" name="CGS" id="id-c7f77856c95b44bb79a3eff2047f0d07">
+      <documentation>CiVision Gemeentelijke Servicebus — the central integration platform / ESB. Routes all service calls between municipal apps and national registries. 18 production services hosted.</documentation>
+    </element>
+    <element xsi:type="archimate:ApplicationComponent" name="NHR" id="id-d19d4a7a16806f5c442a232d9d899a6f">
+      <documentation>Nieuw Handelsregister — national trade register (KVK). Provides StUFBeantwoordVraagNHR service.</documentation>
+    </element>
+    <element xsi:type="archimate:ApplicationComponent" name="KVK" id="id-da1c8991e8c3b7f12a936243607bf708">
+      <documentation>Kamer van Koophandel — chamber of commerce. Consumer of NHR services and provider of KVKEventService.</documentation>
+    </element>
+    <element xsi:type="archimate:ApplicationComponent" name="GWS" id="id-e10cebfdea2329ea164caae058a4d22a">
+      <documentation>GWS — GBA/BRP registration system. Provides BRP base registration services.</documentation>
+    </element>
+    <element xsi:type="archimate:ApplicationComponent" name="FIN" id="id-7f2653391b376ee47f4ff284d943958e">
+      <documentation>Financial system — external provider for CLIQWUSService (providerorganisation=FIN in logservicerequest).</documentation>
+    </element>
+    <element xsi:type="archimate:ApplicationService" name="StUF Services" id="id-7d4de0e152b707441b6bcf48750a8da3">
+      <documentation>Category: 60 StUF (Standard Exchange Format) services — synchronous and asynchronous message exchange for BG, BZ, ZKN, BAG, WOZ, DCR, and more. Core integration protocol for Dutch municipal systems.</documentation>
+    </element>
+    <element xsi:type="archimate:ApplicationService" name="Query Services" id="id-1d517408b9dc9c5af1db8e244e4af5c1">
+      <documentation>Category: 28 query services — data retrieval for persons (GBA/BRP), BSN, dossiers, klantkaart, WOZ, ZTC, and more (Opvragen* naming pattern).</documentation>
+    </element>
+    <element xsi:type="archimate:ApplicationService" name="BRP/GBA Services" id="id-60879e4706378c29625892f742dbbe0e">
+      <documentation>Category: 17 BRP/GBA services — citizen base registration: BevragingBRP, BijhoudenPersoon, ActualiserenGBA, BVBSN identity verification, and related national registry interactions.</documentation>
+    </element>
+    <element xsi:type="archimate:ApplicationService" name="Zaak Services" id="id-1cc779431afa455a07033f36911dde04">
+      <documentation>Category: 4 zaak (case) services — ZTC case-type catalogue management: OpvragenAfhandelingZTC, ToevoegenZaaktypeGegevens, WijzigenZaaktypeGegevens, NotificatieToevoegingAfhandeling.</documentation>
+    </element>
+    <element xsi:type="archimate:ApplicationService" name="KVK/NHR Services" id="id-753553c3ce245cf9d7f7772666a15141">
+      <documentation>Category: 3 KVK/NHR services — trade register interactions: KVKEventService, StUFBeantwoordVraagNHR, OpslaanMaatschappelijkeActiviteitService. Live traffic confirmed in logservicerequest.</documentation>
+    </element>
+    <element xsi:type="archimate:ApplicationService" name="Integration Services" id="id-a13e69b7ba83d5b65d32d7a24fa0e355">
+      <documentation>Category: Remaining integration services — document generation, email, printing, CMIS, Digilevering, Berichtenbox, and platform operational services (94 services).</documentation>
+    </element>
+  </folder>
+  <folder name="Technology &amp; Physical" id="id-6e2a9ad87689fcae9572c55f30c29fdb" type="technology"/>
+  <folder name="Motivation" id="id-2ceb3531a58529a7746732156087a2fb" type="motivation"/>
+  <folder name="Implementation &amp; Migration" id="id-7aa6c0bdfcf9bdb898971f09411b2c1d" type="implementation_migration"/>
+  <folder name="Other" id="id-494ddb20e5741d4873e382d293d2568c" type="other">
+    <element xsi:type="archimate:Grouping" name="Burgerzaken" id="id-946238117053b0cb042ea1b4489d3d4f">
+      <documentation>Burgerzaken domain — citizen records and persons administration. Apps: iBurgerzaken, CIPERS.</documentation>
+    </element>
+    <element xsi:type="archimate:Grouping" name="Zaakgericht Werken" id="id-f808a2103be9c239fb6a1490e539e92d">
+      <documentation>Zaakgericht Werken — case and document management. Apps: CZA, WebNext, Corsa, Alfresco.</documentation>
+    </element>
+    <element xsi:type="archimate:Grouping" name="Sociaal Domein" id="id-85f8e8de5ba2a4991bef31e9fd1de7c8">
+      <documentation>Sociaal Domein — social support and community services. Apps: CWIZ, iSamenleving, CMO.</documentation>
+    </element>
+    <element xsi:type="archimate:Grouping" name="Belastingen en Middelen" id="id-4e6736c4740a776f22057156b1bb35ab">
+      <documentation>Belastingen en Middelen — tax, finance and enforcement. Apps: CBB, CIN, CMD.</documentation>
+    </element>
+    <element xsi:type="archimate:Grouping" name="Geo en Ruimte" id="id-b89e47ba24f86cf275179b680c5bc7aa">
+      <documentation>Geo en Ruimte — geo, cadastre and base registrations. Apps: CBR, CGA, CKD.</documentation>
+    </element>
+    <element xsi:type="archimate:Grouping" name="Portaal en Integratie" id="id-6a243bf961a8f2a3a87e8f76a3de25c1">
+      <documentation>Portaal en Integratie — portals, data brokers and integration mediators. Apps: FrontOffice, CPT, CMG, CIR, CML.</documentation>
+    </element>
+    <element xsi:type="archimate:Grouping" name="CGS Integration Platform" id="id-0789f39d0990f3d9c6701755c1ca8860">
+      <documentation>CGS Integration Platform (CiVision Gemeentelijke Servicebus) — central ESB routing 220 services between 55 municipal applications and national registries.</documentation>
+    </element>
+    <element xsi:type="archimate:Grouping" name="Landelijke Voorzieningen" id="id-f98c053ebd09a8f5e755e60b2185afc9">
+      <documentation>Landelijke Voorzieningen — national systems and registries. Includes BRP/GBA (GWS), KVK/NHR, and financial systems (FIN).</documentation>
+    </element>
+  </folder>
+  <folder name="Relations" id="id-9b7e88f6f06c9895a30a1c93f4986f6e" type="relations">
+    <element xsi:type="archimate:ServingRelationship" id="id-40ca3a9d9e58a8ca9419086dc18a6d55" source="id-c7f77856c95b44bb79a3eff2047f0d07" target="id-7d4de0e152b707441b6bcf48750a8da3" name="hosts"/>
+    <element xsi:type="archimate:ServingRelationship" id="id-fab09d65f76f50916a1ab2911ae8fe49" source="id-c7f77856c95b44bb79a3eff2047f0d07" target="id-1d517408b9dc9c5af1db8e244e4af5c1" name="hosts"/>
+    <element xsi:type="archimate:ServingRelationship" id="id-ebfcd736835bf12cf1525512eef80afb" source="id-c7f77856c95b44bb79a3eff2047f0d07" target="id-60879e4706378c29625892f742dbbe0e" name="hosts"/>
+    <element xsi:type="archimate:ServingRelationship" id="id-2ba7544f959d7bf49e42f53af5318cf4" source="id-c7f77856c95b44bb79a3eff2047f0d07" target="id-1cc779431afa455a07033f36911dde04" name="hosts"/>
+    <element xsi:type="archimate:ServingRelationship" id="id-6920b224192b9518f5d049308f8257c3" source="id-c7f77856c95b44bb79a3eff2047f0d07" target="id-753553c3ce245cf9d7f7772666a15141" name="hosts"/>
+    <element xsi:type="archimate:ServingRelationship" id="id-3cff2b9d4141b10803254116e7a850f8" source="id-c7f77856c95b44bb79a3eff2047f0d07" target="id-a13e69b7ba83d5b65d32d7a24fa0e355" name="hosts"/>
+    <element xsi:type="archimate:ServingRelationship" id="id-f8702c7c83ff1da05d85679f593ed17a" source="id-7d4de0e152b707441b6bcf48750a8da3" target="id-1b18ad6df3e6978280153d3aab3513e8" name="StUF"/>
+    <element xsi:type="archimate:ServingRelationship" id="id-fe841ecb63eac63a70cb6d6f3e6caf99" source="id-7d4de0e152b707441b6bcf48750a8da3" target="id-5c89766015cb30c176dbf918f3a7aab1" name="StUF"/>
+    <element xsi:type="archimate:ServingRelationship" id="id-fa40737bb8ba82ddb5a4c13f63ba89d3" source="id-7d4de0e152b707441b6bcf48750a8da3" target="id-16d63f2785fb90fa323323142488fb80" name="StUF"/>
+    <element xsi:type="archimate:ServingRelationship" id="id-8fcecdca24d7944c02aac979c90b65d2" source="id-1d517408b9dc9c5af1db8e244e4af5c1" target="id-98e5c9fd9a7d4e99bfc36bfc3ff09f10" name="Query"/>
+    <element xsi:type="archimate:ServingRelationship" id="id-52132338aa6bdaeb6c03efa8fa2184d7" source="id-1d517408b9dc9c5af1db8e244e4af5c1" target="id-be59bce948a3d30e0f8ee20e2f6ed69d" name="Query"/>
+    <element xsi:type="archimate:ServingRelationship" id="id-ec418482997ca07bee4447acc0a4be47" source="id-60879e4706378c29625892f742dbbe0e" target="id-1b18ad6df3e6978280153d3aab3513e8" name="BRP/GBA"/>
+    <element xsi:type="archimate:ServingRelationship" id="id-06498969f9bc73383c9d1f304c0c410d" source="id-60879e4706378c29625892f742dbbe0e" target="id-0b8e63cbd086f78e47a2e79864cf7340" name="BRP/GBA"/>
+    <element xsi:type="archimate:ServingRelationship" id="id-e21fe398768cd6e1dbe4b171534d7df8" source="id-1cc779431afa455a07033f36911dde04" target="id-5c89766015cb30c176dbf918f3a7aab1" name="Zaak"/>
+    <element xsi:type="archimate:ServingRelationship" id="id-5f3adb71bd6072c8c3ca10052cb739f6" source="id-753553c3ce245cf9d7f7772666a15141" target="id-a86a4a5e07b1e6d695f898bf04a8512d" name="KVK/NHR"/>
+    <element xsi:type="archimate:ServingRelationship" id="id-94a387445833f2ef1aa9004d0925b7c5" source="id-a13e69b7ba83d5b65d32d7a24fa0e355" target="id-f37c92b6fed7f8fd5c34da32d175ffb8" name="Integration"/>
+    <element xsi:type="archimate:ServingRelationship" id="id-8dc6ae1a5ea819d3ea3f02264676c041" source="id-e10cebfdea2329ea164caae058a4d22a" target="id-60879e4706378c29625892f742dbbe0e" name="BRP/GBA data"/>
+    <element xsi:type="archimate:ServingRelationship" id="id-70c0071203911ce9c75a432c0f058d36" source="id-d19d4a7a16806f5c442a232d9d899a6f" target="id-753553c3ce245cf9d7f7772666a15141" name="NHR data"/>
+    <element xsi:type="archimate:ServingRelationship" id="id-df3ca93af756530c173d2329b3b9ba2e" source="id-da1c8991e8c3b7f12a936243607bf708" target="id-753553c3ce245cf9d7f7772666a15141" name="KVK events"/>
+    <element xsi:type="archimate:ServingRelationship" id="id-2cea11bd58e024cb0493058e26e4879f" source="id-7f2653391b376ee47f4ff284d943958e" target="id-a13e69b7ba83d5b65d32d7a24fa0e355" name="Financial data"/>
+  </folder>
+  <folder name="Views" id="id-835f8080042219adaae7903365cf8668" type="diagrams">
+    <element xsi:type="archimate:ArchimateDiagramModel" name="CGS Service Landscape — Top 20 Applicaties" id="id-f27e90b779dd53d5e252178b751e38e0">
+      <child xsi:type="archimate:DiagramObject" id="id-eaf3a5ef04bbf170286d24cb262f368f" archimateElement="id-946238117053b0cb042ea1b4489d3d4f">
+        <bounds x="20" y="20" width="300" height="140"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-52259410ef9b66b7819bad379abcf967" archimateElement="id-f808a2103be9c239fb6a1490e539e92d">
+        <bounds x="20" y="180" width="300" height="200"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-9213a6c7495da66f4211fd175e355506" archimateElement="id-85f8e8de5ba2a4991bef31e9fd1de7c8">
+        <bounds x="20" y="400" width="300" height="160"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-0df3fdbd023a116c9ab2c8ec3f4894a7" archimateElement="id-4e6736c4740a776f22057156b1bb35ab">
+        <bounds x="20" y="580" width="300" height="160"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-cde4a9663b76a76abf5ee7a2703ebc75" archimateElement="id-b89e47ba24f86cf275179b680c5bc7aa">
+        <bounds x="20" y="760" width="300" height="160"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-60ad8053ee2c6a8b2cf1a807b890537f" archimateElement="id-6a243bf961a8f2a3a87e8f76a3de25c1">
+        <bounds x="20" y="940" width="300" height="220"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-2e3f0ce95c15bd09bc3e989cc6660f5e" archimateElement="id-0789f39d0990f3d9c6701755c1ca8860">
+        <bounds x="360" y="20" width="420" height="1140"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-b590f8c0597718a644acf30e09893a23" archimateElement="id-f98c053ebd09a8f5e755e60b2185afc9">
+        <bounds x="830" y="20" width="220" height="1140"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-a84215009ed16ebf2a33ca8ec0c72619" archimateElement="id-c7f77856c95b44bb79a3eff2047f0d07">
+        <bounds x="460" y="65" width="200" height="60"/>
+        <sourceConnection xsi:type="archimate:Connection" id="id-2c330de076db8316de16d556716b8eb4" source="id-a84215009ed16ebf2a33ca8ec0c72619" target="id-e57ff675f66567df5b0501bc3ca7df94" archimateRelationship="id-40ca3a9d9e58a8ca9419086dc18a6d55"/>
+        <sourceConnection xsi:type="archimate:Connection" id="id-28a246e9e078e7ea62c3c17a861f23b4" source="id-a84215009ed16ebf2a33ca8ec0c72619" target="id-93d8f7b445d155e4c46acfd936e96c25" archimateRelationship="id-fab09d65f76f50916a1ab2911ae8fe49"/>
+        <sourceConnection xsi:type="archimate:Connection" id="id-2ca54c517ac1bc2ebea20a2f8ac80f1f" source="id-a84215009ed16ebf2a33ca8ec0c72619" target="id-b3dd310f3dbc27e81ea523a26f356d9a" archimateRelationship="id-ebfcd736835bf12cf1525512eef80afb"/>
+        <sourceConnection xsi:type="archimate:Connection" id="id-8cf851a2cc8cf5fbe14ec686dad8f467" source="id-a84215009ed16ebf2a33ca8ec0c72619" target="id-158249fea88a5cc09a871ea4c3d2abf1" archimateRelationship="id-2ba7544f959d7bf49e42f53af5318cf4"/>
+        <sourceConnection xsi:type="archimate:Connection" id="id-32b6e93e056c2234ad6d427c8ed587c8" source="id-a84215009ed16ebf2a33ca8ec0c72619" target="id-b0a4f3667f0f29bf195033625ed143dc" archimateRelationship="id-6920b224192b9518f5d049308f8257c3"/>
+        <sourceConnection xsi:type="archimate:Connection" id="id-6a37274d616bb44a5cdf2738a3707be9" source="id-a84215009ed16ebf2a33ca8ec0c72619" target="id-17ee369330d962251e9ca867ecfacf2e" archimateRelationship="id-3cff2b9d4141b10803254116e7a850f8"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-e57ff675f66567df5b0501bc3ca7df94" archimateElement="id-7d4de0e152b707441b6bcf48750a8da3" targetConnections="id-2c330de076db8316de16d556716b8eb4">
+        <bounds x="375" y="170" width="180" height="65"/>
+        <sourceConnection xsi:type="archimate:Connection" id="id-fff74ebb42c6ba8c0ab4833525de8e06" source="id-e57ff675f66567df5b0501bc3ca7df94" target="id-723f2b07ced85316a9f5818174dbed00" archimateRelationship="id-f8702c7c83ff1da05d85679f593ed17a"/>
+        <sourceConnection xsi:type="archimate:Connection" id="id-8dcdbce7427a392f9f11653bc62c10d9" source="id-e57ff675f66567df5b0501bc3ca7df94" target="id-02d2676d448dca8e32372ad7fed68e13" archimateRelationship="id-fe841ecb63eac63a70cb6d6f3e6caf99"/>
+        <sourceConnection xsi:type="archimate:Connection" id="id-27f614bf20779b4ee30f44271911d5c1" source="id-e57ff675f66567df5b0501bc3ca7df94" target="id-8f7cb653a845635f455a5d217b991b2f" archimateRelationship="id-fa40737bb8ba82ddb5a4c13f63ba89d3"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-93d8f7b445d155e4c46acfd936e96c25" archimateElement="id-1d517408b9dc9c5af1db8e244e4af5c1" targetConnections="id-28a246e9e078e7ea62c3c17a861f23b4">
+        <bounds x="565" y="170" width="180" height="65"/>
+        <sourceConnection xsi:type="archimate:Connection" id="id-b8212c4bef311b790326b788aa22e184" source="id-93d8f7b445d155e4c46acfd936e96c25" target="id-ca37e610008971b6be816fbb13704393" archimateRelationship="id-8fcecdca24d7944c02aac979c90b65d2"/>
+        <sourceConnection xsi:type="archimate:Connection" id="id-9021d1245ec1302e8dbaa7f92e915d02" source="id-93d8f7b445d155e4c46acfd936e96c25" target="id-9e141f83de19457cdbf4a6119f9dc165" archimateRelationship="id-52132338aa6bdaeb6c03efa8fa2184d7"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-b3dd310f3dbc27e81ea523a26f356d9a" archimateElement="id-60879e4706378c29625892f742dbbe0e" targetConnections="id-2ca54c517ac1bc2ebea20a2f8ac80f1f id-47d86f7379a5274bb99eefff5f716227">
+        <bounds x="375" y="270" width="180" height="65"/>
+        <sourceConnection xsi:type="archimate:Connection" id="id-2ef518306281ab475e5fc472a1b8d209" source="id-b3dd310f3dbc27e81ea523a26f356d9a" target="id-723f2b07ced85316a9f5818174dbed00" archimateRelationship="id-ec418482997ca07bee4447acc0a4be47"/>
+        <sourceConnection xsi:type="archimate:Connection" id="id-847152154be61f828d3a1614ed605054" source="id-b3dd310f3dbc27e81ea523a26f356d9a" target="id-a59ae5fe3714a6ee17f1eea874f5d5e5" archimateRelationship="id-06498969f9bc73383c9d1f304c0c410d"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-158249fea88a5cc09a871ea4c3d2abf1" archimateElement="id-1cc779431afa455a07033f36911dde04" targetConnections="id-8cf851a2cc8cf5fbe14ec686dad8f467">
+        <bounds x="565" y="270" width="180" height="65"/>
+        <sourceConnection xsi:type="archimate:Connection" id="id-03337f840c2fee17db51e9be14d46fbc" source="id-158249fea88a5cc09a871ea4c3d2abf1" target="id-02d2676d448dca8e32372ad7fed68e13" archimateRelationship="id-e21fe398768cd6e1dbe4b171534d7df8"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-b0a4f3667f0f29bf195033625ed143dc" archimateElement="id-753553c3ce245cf9d7f7772666a15141" targetConnections="id-32b6e93e056c2234ad6d427c8ed587c8 id-ab4089a9f76addce0df79f3746c685bf id-053eec22ea46284a32a7c865907b6922">
+        <bounds x="375" y="370" width="180" height="65"/>
+        <sourceConnection xsi:type="archimate:Connection" id="id-74b637f2fcdeeab1a41c461092ffb4d2" source="id-b0a4f3667f0f29bf195033625ed143dc" target="id-7e3eb7e54b1667b4f7741d0da7accf72" archimateRelationship="id-5f3adb71bd6072c8c3ca10052cb739f6"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-17ee369330d962251e9ca867ecfacf2e" archimateElement="id-a13e69b7ba83d5b65d32d7a24fa0e355" targetConnections="id-6a37274d616bb44a5cdf2738a3707be9 id-72e37e802dfc6f1fefe52a196e4afc32">
+        <bounds x="565" y="370" width="180" height="65"/>
+        <sourceConnection xsi:type="archimate:Connection" id="id-a162cc473c801796e50f3f79ce64cbef" source="id-17ee369330d962251e9ca867ecfacf2e" target="id-6985f9fcebd76622057077bafa9592b8" archimateRelationship="id-94a387445833f2ef1aa9004d0925b7c5"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-723f2b07ced85316a9f5818174dbed00" archimateElement="id-1b18ad6df3e6978280153d3aab3513e8" targetConnections="id-fff74ebb42c6ba8c0ab4833525de8e06 id-2ef518306281ab475e5fc472a1b8d209">
+        <bounds x="40" y="65" width="120" height="50"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-a59ae5fe3714a6ee17f1eea874f5d5e5" archimateElement="id-0b8e63cbd086f78e47a2e79864cf7340" targetConnections="id-847152154be61f828d3a1614ed605054">
+        <bounds x="185" y="65" width="120" height="50"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-02d2676d448dca8e32372ad7fed68e13" archimateElement="id-5c89766015cb30c176dbf918f3a7aab1" targetConnections="id-8dcdbce7427a392f9f11653bc62c10d9 id-03337f840c2fee17db51e9be14d46fbc">
+        <bounds x="40" y="225" width="120" height="50"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-836b87e5d8385359f892c911a3ae9317" archimateElement="id-7a964ab15819acdde697260f45e5023e">
+        <bounds x="185" y="225" width="120" height="50"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-96e92ee9480ffcef1378642b6ded820a" archimateElement="id-5888122e2a868fa81bff49342a7d0912">
+        <bounds x="40" y="300" width="120" height="50"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-c8dd2c348caaaaab7ed35a734cf6c91f" archimateElement="id-3fa6200013590f2508186a7e584bdad8">
+        <bounds x="185" y="300" width="120" height="50"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-8f7cb653a845635f455a5d217b991b2f" archimateElement="id-16d63f2785fb90fa323323142488fb80" targetConnections="id-27f614bf20779b4ee30f44271911d5c1">
+        <bounds x="40" y="445" width="120" height="50"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-f1331a6a6c4adcef84fc535736c6e50f" archimateElement="id-06501439875759b07b9a1a2636df734a">
+        <bounds x="185" y="445" width="120" height="50"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-b111230771b6acf4bc4926868441d331" archimateElement="id-94c17186c2989b6f7cf0889dd253be4a">
+        <bounds x="110" y="510" width="120" height="50"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-ca37e610008971b6be816fbb13704393" archimateElement="id-98e5c9fd9a7d4e99bfc36bfc3ff09f10" targetConnections="id-b8212c4bef311b790326b788aa22e184">
+        <bounds x="40" y="625" width="120" height="50"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-6c111d1e6b545114e817a6b3d663f4a2" archimateElement="id-16508f7c1878c298d283cb4fe2a87c1e">
+        <bounds x="185" y="625" width="120" height="50"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-cf0f697110d8b0565253b7448669ea6b" archimateElement="id-ecc5a19fe247aaab0b7740d2f3ef210c">
+        <bounds x="110" y="695" width="120" height="50"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-9e141f83de19457cdbf4a6119f9dc165" archimateElement="id-be59bce948a3d30e0f8ee20e2f6ed69d" targetConnections="id-9021d1245ec1302e8dbaa7f92e915d02">
+        <bounds x="40" y="805" width="120" height="50"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-2131403bbda6cdbfc77b4a717d0f3568" archimateElement="id-9253ecb89d09686d8d9112ec25612a31">
+        <bounds x="185" y="805" width="120" height="50"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-f851bc64b43d8a1555d507521467fff6" archimateElement="id-db8ef8bf23942b67fa7ef7807655ae43">
+        <bounds x="110" y="870" width="120" height="50"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-6985f9fcebd76622057077bafa9592b8" archimateElement="id-f37c92b6fed7f8fd5c34da32d175ffb8" targetConnections="id-a162cc473c801796e50f3f79ce64cbef">
+        <bounds x="40" y="985" width="120" height="50"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-ab16b8e8984144c103463550eab5bc83" archimateElement="id-a701c49a2f05cf7a3e196fee6e3ab182">
+        <bounds x="185" y="985" width="120" height="50"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-bdddf75aab0e72443125b50d69abb7c0" archimateElement="id-04ee053a487d9d9347bcfccdef091a48">
+        <bounds x="40" y="1060" width="120" height="50"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-e39f09b580c0b8d0ca2b2f6b1d271b13" archimateElement="id-d7baa901b608d6b051a40db56d516ea5">
+        <bounds x="185" y="1060" width="120" height="50"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-7e3eb7e54b1667b4f7741d0da7accf72" archimateElement="id-a86a4a5e07b1e6d695f898bf04a8512d" targetConnections="id-74b637f2fcdeeab1a41c461092ffb4d2">
+        <bounds x="110" y="1110" width="120" height="50"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-135511fb08fab1889067a1f3b65a9905" archimateElement="id-e10cebfdea2329ea164caae058a4d22a">
+        <bounds x="865" y="100" width="160" height="55"/>
+        <sourceConnection xsi:type="archimate:Connection" id="id-47d86f7379a5274bb99eefff5f716227" source="id-135511fb08fab1889067a1f3b65a9905" target="id-b3dd310f3dbc27e81ea523a26f356d9a" archimateRelationship="id-8dc6ae1a5ea819d3ea3f02264676c041"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-70bf1012074a497dd7fb6d4f09e3c294" archimateElement="id-d19d4a7a16806f5c442a232d9d899a6f">
+        <bounds x="865" y="220" width="160" height="55"/>
+        <sourceConnection xsi:type="archimate:Connection" id="id-ab4089a9f76addce0df79f3746c685bf" source="id-70bf1012074a497dd7fb6d4f09e3c294" target="id-b0a4f3667f0f29bf195033625ed143dc" archimateRelationship="id-70c0071203911ce9c75a432c0f058d36"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-00648a0ffc5858c341866956c929ae0b" archimateElement="id-da1c8991e8c3b7f12a936243607bf708">
+        <bounds x="865" y="340" width="160" height="55"/>
+        <sourceConnection xsi:type="archimate:Connection" id="id-053eec22ea46284a32a7c865907b6922" source="id-00648a0ffc5858c341866956c929ae0b" target="id-b0a4f3667f0f29bf195033625ed143dc" archimateRelationship="id-df3ca93af756530c173d2329b3b9ba2e"/>
+      </child>
+      <child xsi:type="archimate:DiagramObject" id="id-55b3dc75f37787a3bd7a84e9929df37b" archimateElement="id-7f2653391b376ee47f4ff284d943958e">
+        <bounds x="865" y="460" width="160" height="55"/>
+        <sourceConnection xsi:type="archimate:Connection" id="id-72e37e802dfc6f1fefe52a196e4afc32" source="id-55b3dc75f37787a3bd7a84e9929df37b" target="id-17ee369330d962251e9ca867ecfacf2e" archimateRelationship="id-2cea11bd58e024cb0493058e26e4879f"/>
+      </child>
+    </element>
+  </folder>
+</archimate:model>
