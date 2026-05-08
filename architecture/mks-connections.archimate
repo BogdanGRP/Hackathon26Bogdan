@@ -6,12 +6,154 @@
     <element xsi:type="archimate:ApplicationComponent" name="MCP Test Box" id="id-ab20f8a39610fa34fc70728c3e1bfdb2">
       <documentation>Simple smoke test element to verify the ArchiMate MCP server is working correctly.</documentation>
     </element>
+    <element xsi:type="archimate:DataObject" name="servicedefinition" id="id-463f2b07513d291f737a7521c5a20486">
+      <documentation>Domain: Service Bus Core | Rows: 220 | Root reference table — defines available services in the CGS service catalog</documentation>
+    </element>
+    <element xsi:type="archimate:DataObject" name="channeldefinition" id="id-d2c6e689d85667356ec924dd0554f07c">
+      <documentation>Domain: Service Bus Core | Rows: 14 | Routes a service to an adapter endpoint, with optional transformation and orchestration</documentation>
+    </element>
+    <element xsi:type="archimate:DataObject" name="serviceusage" id="id-d556716c5f60a7117769574d61a0d66d">
+      <documentation>Domain: Service Bus Core | Rows: 657 | Junction table — maps which application uses which service definition. UNIQUE(servicedefinition_id, application_id)</documentation>
+    </element>
+    <element xsi:type="archimate:DataObject" name="servicecomponentrelation" id="id-268db58204d3199dcfb4bc47a95a19fd">
+      <documentation>Domain: Service Bus Core | Rows: 41 | Maps a service to its adapter, orchestration, and message definition components</documentation>
+    </element>
+    <element xsi:type="archimate:DataObject" name="orchestrationdefinition" id="id-2586d04fd04f2ca6adcbf2f2b83f0554">
+      <documentation>Domain: Service Bus Core | Rows: 0 | Defines an orchestration workflow (currently unused)</documentation>
+    </element>
+    <element xsi:type="archimate:DataObject" name="orchestrationsetting" id="id-6e8edc4630ce7ee7540ac787cf35b7e5">
+      <documentation>Domain: Service Bus Core | Rows: 0 | Configuration settings for an orchestration definition</documentation>
+    </element>
+    <element xsi:type="archimate:DataObject" name="application" id="id-4e238e68449930ae6a72a9a35017f7db">
+      <documentation>Domain: Application | Rows: 7 | Registered municipal applications consuming CGS services. Supports self-reference for parent app hierarchy</documentation>
+    </element>
+    <element xsi:type="archimate:DataObject" name="applicationopeningperiod" id="id-f59773c20fbbb939f5fd0b37e9c7fbb1">
+      <documentation>Domain: Application | Rows: 0 | Defines availability windows for an application</documentation>
+    </element>
+    <element xsi:type="archimate:DataObject" name="certificate" id="id-fbbf3aaa126ac0f00895b326486476f1">
+      <documentation>Domain: Application | Rows: 0 | TLS/signing certificate linked to an application. UNIQUE(alias, certificatetype)</documentation>
+    </element>
+    <element xsi:type="archimate:DataObject" name="adapterdefinition" id="id-8fd538691ff0acc8b0b783b713a4e292">
+      <documentation>Domain: Adapter/Endpoint | Rows: 7 | Root reference table — defines adapter types (e.g. SOAP, REST, ebMS)</documentation>
+    </element>
+    <element xsi:type="archimate:DataObject" name="adapterendpoint" id="id-1bb28c67e672c23e472d43d379ccb8e3">
+      <documentation>Domain: Adapter/Endpoint | Rows: 14 | A specific endpoint instance of an adapter, associated with an application alias</documentation>
+    </element>
+    <element xsi:type="archimate:DataObject" name="endpointconfiguration" id="id-7b9c816f71327f160265a592cf7a0745">
+      <documentation>Domain: Adapter/Endpoint | Rows: 491 | Runtime configuration for an adapter endpoint (URL, timeouts, credentials). Largest populated config table</documentation>
+    </element>
+    <element xsi:type="archimate:DataObject" name="adaptersetting" id="id-afed6b79ef0e871e00e4e1d2cd8e314f">
+      <documentation>Domain: Adapter/Endpoint | Rows: 0 | Key-value settings for an endpoint configuration</documentation>
+    </element>
+    <element xsi:type="archimate:DataObject" name="messagedefinition" id="id-3600c80005fd201dfbb5eddc0fbf8578">
+      <documentation>Domain: Message/Transformation | Rows: 32 | Root reference table — defines message formats used in service requests and responses</documentation>
+    </element>
+    <element xsi:type="archimate:DataObject" name="elementdefinition" id="id-11df15f054b0636084cb8437273a7834">
+      <documentation>Domain: Message/Transformation | Rows: 0 | Individual XML/JSON element within a message definition. Supports self-reference for nested elements</documentation>
+    </element>
+    <element xsi:type="archimate:DataObject" name="transformationdefinition" id="id-187863c2d8d9e1fd845a29309c888769">
+      <documentation>Domain: Message/Transformation | Rows: 5 | XSLT transformation mapping between source and target message definitions</documentation>
+    </element>
+    <element xsi:type="archimate:DataObject" name="xsltcontent" id="id-9ce761f91848611a2e2b92bbe3edd1d0">
+      <documentation>Domain: Message/Transformation | Rows: 1 | Stores XSLT stylesheet content for transformations</documentation>
+    </element>
+    <element xsi:type="archimate:DataObject" name="validator" id="id-d83fe0a11d6f48ecb688ba887b474011">
+      <documentation>Domain: Validation | Rows: 0 | Root reference table — defines a validator (Java class). UNIQUE(classname)</documentation>
+    </element>
+    <element xsi:type="archimate:DataObject" name="validatoraction" id="id-4564b6c22720be5b0ca54a871726d256">
+      <documentation>Domain: Validation | Rows: 0 | A callable action method on a validator. UNIQUE(validator_id, methodname)</documentation>
+    </element>
+    <element xsi:type="archimate:DataObject" name="validatoractioncfg" id="id-8bc4d4fdbfefdae149c6d467500c7b22">
+      <documentation>Domain: Validation | Rows: 0 | Configuration parameter for a validator action</documentation>
+    </element>
+    <element xsi:type="archimate:DataObject" name="messagevalidation" id="id-bbf8f42f715c7bb1a3d73ae3e2b2e7d5">
+      <documentation>Domain: Validation | Rows: 0 | Assigns a validator to a message element definition. UNIQUE(elementdefinition_id, validator_id)</documentation>
+    </element>
+    <element xsi:type="archimate:DataObject" name="messagevalidationaction" id="id-ce38d3103a5d875f4abc3f8bd40533d8">
+      <documentation>Domain: Validation | Rows: 0 | Junction table — links a messagevalidation to a validatoraction. UNIQUE(messagevalidation_id, validatoraction_id)</documentation>
+    </element>
+    <element xsi:type="archimate:DataObject" name="messagevalidationactioncfg" id="id-69a0103c20c4df386758e5053ad6045b">
+      <documentation>Domain: Validation | Rows: 0 | Junction table — provides configuration for a messagevalidationaction with a specific validatoractioncfg</documentation>
+    </element>
+    <element xsi:type="archimate:DataObject" name="cmisproviderconfiguration" id="id-7221933bd33f699a234b743a91ec6d42">
+      <documentation>Domain: CMIS | Rows: 2 | CMIS provider server configuration</documentation>
+    </element>
+    <element xsi:type="archimate:DataObject" name="cmisproviderproperty" id="id-2c16fb5b3476e5b1b26da2a7b232b063">
+      <documentation>Domain: CMIS | Rows: 28 | A property exposed by a CMIS provider</documentation>
+    </element>
+    <element xsi:type="archimate:DataObject" name="cmisconsumerproperty" id="id-1405039788fc2f478257e728de6780a6">
+      <documentation>Domain: CMIS | Rows: 23 | A property requested by a CMIS consumer application</documentation>
+    </element>
+    <element xsi:type="archimate:DataObject" name="cmisrepository" id="id-02177ca4645d9193b77704ef2eae043c">
+      <documentation>Domain: CMIS | Rows: 2 | A CMIS repository instance linked to an adapter endpoint and provider configuration</documentation>
+    </element>
+    <element xsi:type="archimate:DataObject" name="cmispropertymapping" id="id-0887e11a74e23504e8e9f31be42b57d3">
+      <documentation>Domain: CMIS | Rows: 14 | Junction table — maps consumer properties to provider properties for a repository. Multiple UNIQUE constraints</documentation>
+    </element>
+    <element xsi:type="archimate:DataObject" name="ebmscpa" id="id-98a9c64d734dd183fdd7acfce3ab0978">
+      <documentation>Domain: ebMS Messaging | Rows: 0 | Collaboration Protocol Agreement — governs ebMS message exchange. References a certificate</documentation>
+    </element>
+    <element xsi:type="archimate:DataObject" name="ebmsmessage" id="id-44b93eb5272f8515c82a1f2622edc858">
+      <documentation>Domain: ebMS Messaging | Rows: 0 | An ebMS message governed by a CPA</documentation>
+    </element>
+    <element xsi:type="archimate:DataObject" name="ebmsattachment" id="id-d5a8832e2b8b2d50d3ada9ff267cf040">
+      <documentation>Domain: ebMS Messaging | Rows: 0 | Binary attachment linked to an ebMS message</documentation>
+    </element>
+    <element xsi:type="archimate:DataObject" name="ebmssendevent" id="id-d7117c4939262ed1f1548a9d392f647e">
+      <documentation>Domain: ebMS Messaging | Rows: 0 | Represents a send event triggered by an ebMS message. UNIQUE(ebmsmessage_id)</documentation>
+    </element>
+    <element xsi:type="archimate:DataObject" name="ebmsmapping" id="id-f6cdd006398a35c2288e686bb49fe9b8">
+      <documentation>Domain: ebMS Messaging | Rows: 0 | Isolated table — ebMS message type mapping. No FK connections. UNIQUE(name)</documentation>
+    </element>
+    <element xsi:type="archimate:DataObject" name="logmessage" id="id-ec02dc746a7aa9cacf9053d4d6dde4b7">
+      <documentation>Domain: Logging | Rows: 66 | Root reference table — the raw message payload (request/response). Referenced by logservicerequest, logroute, logattachment</documentation>
+    </element>
+    <element xsi:type="archimate:DataObject" name="logservicerequest" id="id-f2c83534f169cdc044246a11a3d08a6f">
+      <documentation>Domain: Logging | Rows: 22 | A logged service request with request/response message links. Supports self-reference for parent/child chaining</documentation>
+    </element>
+    <element xsi:type="archimate:DataObject" name="logroute" id="id-3cdb9cd2e62d05b96c506dcf001183cf">
+      <documentation>Domain: Logging | Rows: 22 | A route taken by a service request, with links to transformed messages</documentation>
+    </element>
+    <element xsi:type="archimate:DataObject" name="logaction" id="id-512df24d39a21d3d06d27f5d99b2d63d">
+      <documentation>Domain: Logging | Rows: 148 | A logged action event within a service request or route</documentation>
+    </element>
+    <element xsi:type="archimate:DataObject" name="logattachment" id="id-1fbe8f85fae43828b04a23514942d707">
+      <documentation>Domain: Logging | Rows: 0 | Binary attachment for a logged message</documentation>
+    </element>
   </folder>
   <folder name="Technology &amp; Physical" id="id-f2d1144a6d9a47719e4de63f36620dc3" type="technology"/>
   <folder name="Motivation" id="id-6d2f32de0d09415bac66b00c6139672a" type="motivation"/>
   <folder name="Implementation &amp; Migration" id="id-d576610c3b9e4e99966038265dcc2081" type="implementation_migration"/>
   <folder name="Other" id="id-0914a63495de4b0b8e56835920a1a6a4" type="other"/>
-  <folder name="Relations" id="id-ac97f21843ce42d880b5ac7a2fafa2e9" type="relations"/>
+  <folder name="Relations" id="id-ac97f21843ce42d880b5ac7a2fafa2e9" type="relations">
+    <element xsi:type="archimate:AssociationRelationship" id="id-81cb03bcc5225f1bf0cc48e27654d0ec" source="id-4e238e68449930ae6a72a9a35017f7db" target="id-d556716c5f60a7117769574d61a0d66d" name="application → serviceusage"/>
+    <element xsi:type="archimate:AssociationRelationship" id="id-506a420b52a4d01b562f6e10d7b8ec93" source="id-463f2b07513d291f737a7521c5a20486" target="id-d556716c5f60a7117769574d61a0d66d" name="servicedefinition → serviceusage"/>
+    <element xsi:type="archimate:AssociationRelationship" id="id-1a3d0a45dc3a24f629accf05e9493687" source="id-463f2b07513d291f737a7521c5a20486" target="id-d2c6e689d85667356ec924dd0554f07c" name="servicedefinition → channeldefinition"/>
+    <element xsi:type="archimate:AssociationRelationship" id="id-fd37b49b522e4f443e62e1aa83e3f420" source="id-463f2b07513d291f737a7521c5a20486" target="id-268db58204d3199dcfb4bc47a95a19fd" name="servicedefinition → servicecomponentrelation"/>
+    <element xsi:type="archimate:AssociationRelationship" id="id-062638e3ff7659758de7466269784132" source="id-1bb28c67e672c23e472d43d379ccb8e3" target="id-d2c6e689d85667356ec924dd0554f07c" name="adapterendpoint → channeldefinition"/>
+    <element xsi:type="archimate:AssociationRelationship" id="id-f1382df3dd99a918e16141a87fcdfe7a" source="id-8fd538691ff0acc8b0b783b713a4e292" target="id-1bb28c67e672c23e472d43d379ccb8e3" name="adapterdefinition → adapterendpoint"/>
+    <element xsi:type="archimate:AssociationRelationship" id="id-1acd716ba8f2e965461b58b740b728e2" source="id-1bb28c67e672c23e472d43d379ccb8e3" target="id-7b9c816f71327f160265a592cf7a0745" name="adapterendpoint → endpointconfiguration"/>
+    <element xsi:type="archimate:AssociationRelationship" id="id-38c880880a2062ce76f16be23c2cc1cc" source="id-7b9c816f71327f160265a592cf7a0745" target="id-afed6b79ef0e871e00e4e1d2cd8e314f" name="endpointconfiguration → adaptersetting"/>
+    <element xsi:type="archimate:AssociationRelationship" id="id-c3d342426fd0b626cbf87d619d644c77" source="id-fbbf3aaa126ac0f00895b326486476f1" target="id-7b9c816f71327f160265a592cf7a0745" name="certificate → endpointconfiguration"/>
+    <element xsi:type="archimate:AssociationRelationship" id="id-be0a02f895e5e0b993d8836b04a074e8" source="id-3600c80005fd201dfbb5eddc0fbf8578" target="id-187863c2d8d9e1fd845a29309c888769" name="messagedefinition → transformationdefinition"/>
+    <element xsi:type="archimate:AssociationRelationship" id="id-fb18aa94346ce935aff98ed9b26e110a" source="id-187863c2d8d9e1fd845a29309c888769" target="id-d2c6e689d85667356ec924dd0554f07c" name="transformationdefinition → channeldefinition"/>
+    <element xsi:type="archimate:AssociationRelationship" id="id-fa0f660aed09c494439167de852f5885" source="id-9ce761f91848611a2e2b92bbe3edd1d0" target="id-187863c2d8d9e1fd845a29309c888769" name="xsltcontent → transformationdefinition"/>
+    <element xsi:type="archimate:AssociationRelationship" id="id-fa45813977ebda43e0138b0c9190e8cb" source="id-ec02dc746a7aa9cacf9053d4d6dde4b7" target="id-f2c83534f169cdc044246a11a3d08a6f" name="logmessage → logservicerequest"/>
+    <element xsi:type="archimate:AssociationRelationship" id="id-7a3009eb68fd619c2cac86b8faf42e29" source="id-f2c83534f169cdc044246a11a3d08a6f" target="id-3cdb9cd2e62d05b96c506dcf001183cf" name="logservicerequest → logroute"/>
+    <element xsi:type="archimate:AssociationRelationship" id="id-7e44650c2af78205d367bbc24e14903f" source="id-3cdb9cd2e62d05b96c506dcf001183cf" target="id-512df24d39a21d3d06d27f5d99b2d63d" name="logroute → logaction"/>
+    <element xsi:type="archimate:AssociationRelationship" id="id-428507c16ae02b8d2166ca50d110290b" source="id-ec02dc746a7aa9cacf9053d4d6dde4b7" target="id-1fbe8f85fae43828b04a23514942d707" name="logmessage → logattachment"/>
+    <element xsi:type="archimate:AssociationRelationship" id="id-6ea292ed2f2c6b22aef8b37a997f2b64" source="id-7221933bd33f699a234b743a91ec6d42" target="id-02177ca4645d9193b77704ef2eae043c" name="cmisproviderconfiguration → cmisrepository"/>
+    <element xsi:type="archimate:AssociationRelationship" id="id-8b434f22ebcb930927e4dd7ec3d1c388" source="id-02177ca4645d9193b77704ef2eae043c" target="id-0887e11a74e23504e8e9f31be42b57d3" name="cmisrepository → cmispropertymapping"/>
+    <element xsi:type="archimate:AssociationRelationship" id="id-0bcd3c04259000807889c37775e29798" source="id-1bb28c67e672c23e472d43d379ccb8e3" target="id-02177ca4645d9193b77704ef2eae043c" name="adapterendpoint → cmisrepository"/>
+    <element xsi:type="archimate:AssociationRelationship" id="id-1b39b09a8d4cac39d9cb63c3ae337dd2" source="id-fbbf3aaa126ac0f00895b326486476f1" target="id-98a9c64d734dd183fdd7acfce3ab0978" name="certificate → ebmscpa"/>
+    <element xsi:type="archimate:AssociationRelationship" id="id-420be12dfc99e2acb8e1488da3d56101" source="id-98a9c64d734dd183fdd7acfce3ab0978" target="id-44b93eb5272f8515c82a1f2622edc858" name="ebmscpa → ebmsmessage"/>
+    <element xsi:type="archimate:AssociationRelationship" id="id-aaae1af0ca374642b3f86d03602734ee" source="id-44b93eb5272f8515c82a1f2622edc858" target="id-d5a8832e2b8b2d50d3ada9ff267cf040" name="ebmsmessage → ebmsattachment"/>
+    <element xsi:type="archimate:AssociationRelationship" id="id-aacf1b4e2a2955c21dbbea680535f932" source="id-44b93eb5272f8515c82a1f2622edc858" target="id-d7117c4939262ed1f1548a9d392f647e" name="ebmsmessage → ebmssendevent"/>
+    <element xsi:type="archimate:AssociationRelationship" id="id-6feb6e826511423b362062321d5ac7f2" source="id-d83fe0a11d6f48ecb688ba887b474011" target="id-bbf8f42f715c7bb1a3d73ae3e2b2e7d5" name="validator → messagevalidation"/>
+    <element xsi:type="archimate:AssociationRelationship" id="id-36d6f3f272dd79fdd5b7a28c4b4aaf17" source="id-3600c80005fd201dfbb5eddc0fbf8578" target="id-11df15f054b0636084cb8437273a7834" name="messagedefinition → elementdefinition"/>
+    <element xsi:type="archimate:AssociationRelationship" id="id-aea5cf32aa91eed5d3aa6ff8dba0c46b" source="id-2586d04fd04f2ca6adcbf2f2b83f0554" target="id-268db58204d3199dcfb4bc47a95a19fd" name="orchestrationdefinition → servicecomponentrelation"/>
+    <element xsi:type="archimate:AssociationRelationship" id="id-7c17359103a3a069b0c546de56d75865" source="id-2586d04fd04f2ca6adcbf2f2b83f0554" target="id-d2c6e689d85667356ec924dd0554f07c" name="orchestrationdefinition → channeldefinition"/>
+  </folder>
   <folder name="Views" id="id-2d18d4422037431d8c58a7ededbf4242" type="diagrams">
     <element xsi:type="archimate:ArchimateDiagramModel" name="Default View" id="id-6424c61816dd4af19d5aafb85235697e">
       <child xsi:type="archimate:DiagramObject" id="id-e95b1ba782b77533f606d5fd06148868" archimateElement="id-ab20f8a39610fa34fc70728c3e1bfdb2">
