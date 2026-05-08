@@ -1,5 +1,13 @@
 {
     "servers": {
+        "archimate": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "archimate-mcp-server@latest"
+            ],
+            "type": "stdio"
+        },
         "igp-ontwikkel-readonly": {
             "command": "npx",
             "args": [
