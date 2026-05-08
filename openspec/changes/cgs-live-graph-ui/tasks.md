@@ -13,7 +13,7 @@
 - [ ] 2.3 Implement `GET /graph/topology` route — query `application`, `serviceusage`, `servicedefinition` tables
 - [ ] 2.4 Filter topology to top-20 production apps (by service count, `usagelevel = 'PRODUCTION'`) plus 6 service category nodes
 - [ ] 2.5 Map apps to their domain groups (Burgerzaken, Zaakgericht Werken, Sociaal Domein, Belastingen en Middelen, Geo en Ruimte, Portaal en Integratie, CGS Platform, Landelijke Voorzieningen)
-- [ ] 2.6 Return `{ nodes: [...], edges: [...], groups: [...] }` with correct `id`, `label`, `type`, `groupId`, `position` fields
+- [ ] 2.6 Return `{ nodes: [...], edges: [...], groups: [...] }` with correct `id`, `label`, `type`, `groupId`, `position` fields — use ArchiMate element type names for `type` field per `openspec/changes/archimate-modeling-conventions/specs/element-type-conventions/spec.md` (apps → `ApplicationComponent`, service categories → `ApplicationService`, groups → `Grouping`)
 - [ ] 2.7 Add simple in-memory cache (Python `functools.lru_cache` or TTL dict) — cache topology for 10 minutes
 
 ## 3. Backend — Traffic Endpoint
@@ -28,7 +28,7 @@
 
 - [ ] 4.1 Create `src/types.ts` with TypeScript types for `TopologyNode`, `TopologyEdge`, `TopologyGroup`, `TrafficFlow`
 - [ ] 4.2 Create `src/api.ts` with `fetchTopology()` and `fetchTraffic()` functions calling the backend
-- [ ] 4.3 Create `src/layout.ts` — map topology response to React Flow `nodes` and `edges` arrays with fixed x/y positions (left column: x=20, center: x=400, right: x=860)
+- [ ] 4.3 Create `src/layout.ts` — map topology response to React Flow `nodes` and `edges` arrays with fixed x/y positions (left column: x=20, center: x=400, right: x=860) per the three-zone layout in `openspec/changes/archimate-modeling-conventions/specs/view-layout-conventions/spec.md`
 - [ ] 4.4 Assign domain group containers as React Flow parent nodes — set `parentId` on each app node
 - [ ] 4.5 Render the base graph in `App.tsx` — load topology on mount, display `<ReactFlow>` with nodes, edges, and group containers
 - [ ] 4.6 Verify all 20 app nodes, 6 service category nodes, and 8 group containers render without overlap

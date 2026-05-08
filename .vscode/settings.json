@@ -7,6 +7,10 @@
         "git push": true,
         "npx -y archimate-mcp-server@latest": true,
         "git -C \"C:\\Users\\lpetrache\\repos\\Hackathon26\"": true,
-        "Move-Item": true
+        "Move-Item": true,
+        "/^git -C \"C:\\\\Users\\\\lpetrache\\\\repos\\\\Hackathon26\" pull$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
     }
 }

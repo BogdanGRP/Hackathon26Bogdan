@@ -1,1 +1,2 @@
 {"timestamp":"2026-05-08T07:35:06.790Z","event":"archimate_export_mermaid","action":"export","success":true,"durationMs":1,"details":{"viewId":"id-6424c61816dd4af19d5aafb85235697e","direction":"TB"}}
+{"timestamp":"2026-05-08T11:52:28.904Z","event":"archimate_export_markdown","action":"export","success":true,"durationMs":3,"details":{"outputPath":"c:\\Users\\lpetrache\\repos\\Hackathon26\\architecture\\cgs-landscape-export.md"}}

@@ -66,10 +66,10 @@
     <element xsi:type="archimate:ApplicationComponent" name="CGS" id="id-c7f77856c95b44bb79a3eff2047f0d07">
       <documentation>CiVision Gemeentelijke Servicebus — the central integration platform / ESB. Routes all service calls between municipal apps and national registries. 18 production services hosted.</documentation>
     </element>
-    <element xsi:type="archimate:ApplicationComponent" name="NHR" id="id-d19d4a7a16806f5c442a232d9d899a6f">
+    <element xsi:type="archimate:ApplicationComponent" name="[External] NHR" id="id-d19d4a7a16806f5c442a232d9d899a6f">
       <documentation>Nieuw Handelsregister — national trade register (KVK). Provides StUFBeantwoordVraagNHR service.</documentation>
     </element>
-    <element xsi:type="archimate:ApplicationComponent" name="KVK" id="id-da1c8991e8c3b7f12a936243607bf708">
+    <element xsi:type="archimate:ApplicationComponent" name="[External] KVK" id="id-da1c8991e8c3b7f12a936243607bf708">
       <documentation>Kamer van Koophandel — chamber of commerce. Consumer of NHR services and provider of KVKEventService.</documentation>
     </element>
     <element xsi:type="archimate:ApplicationComponent" name="GWS" id="id-e10cebfdea2329ea164caae058a4d22a">
