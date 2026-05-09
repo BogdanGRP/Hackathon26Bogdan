@@ -1,0 +1,367 @@
+@startuml cgs-kvk-company-changes
+' ═══════════════════════════════════════════════════════════════
+'  COMPANY CHANGES — KVK / NHR Flow Through CGS
+'  What happens when a company registers, moves, or changes?
+'  Real data from igp_ontwikkel_cgs_owner database
+' ═══════════════════════════════════════════════════════════════
+
+title **What Happens in CGS When a Company Changes?**\nComplete flow: KVK (Chamber of Commerce) → CGS → Municipal Systems\n<size:10>11 KVK/NHR services | 3 KVK signal types | Namespace: schemas.kvk.nl + kvk.nl/StUF/sector/hr</size>
+
+skinparam backgroundColor #FEFEFE
+skinparam defaultFontSize 11
+skinparam shadowing false
+skinparam roundcorner 10
+skinparam sequenceMessageAlign center
+skinparam sequenceBoxBorderColor #90A4AE
+
+actor "Company\nOwner" as owner
+participant "**KVK**\n//Kamer van\nKoophandel//\n(Chamber of\nCommerce)" as kvk #F0F4C3
+
+box "CGS Service Bus" #E3F2FD
+  participant "**Authorization**\n//serviceusage//" as auth #BBDEFB
+  participant "**Message\nMatching**\n//messagedefinition//" as match #BBDEFB
+  participant "**Router**\n//channeldefinition//" as router #90CAF9
+end box
+
+participant "**CML**\n//Broker\nNational//\n(Landelijke\nVoorzieningen)" as cml #E1BEE7
+
+participant "**CIR / CIR_NODE**\n//Company\nRegistry//\n(Inschrijving\nRegister)" as cir #FFF9C4
+
+participant "**CMG**\n//Broker\nData//\n(Distributie)" as cmg #E1BEE7
+
+note over kvk
+  **KVK = Kamer van Koophandel**
+  (Dutch Chamber of Commerce)
+  
+  National registry of all companies,
+  foundations, and associations.
+  
+  **NHR = Nieuw Handelsregister**
+  (New Trade Register) — the
+  standardized data exchange format.
+  
+  **HR = Handelsregister**
+  (Trade Register) — query interface.
+end note
+
+== **SCENARIO 1: Company registers a new branch or changes address** ==
+
+owner -> kvk : Registers change at KVK:\n• New branch location\n• Address change\n• Name change\n• New registration
+
+note over kvk
+  KVK sends a **signal** (signaal)
+  to the municipality via CGS.
+  
+  Three types of signals:
+end note
+
+== **FLOW A: KVKMutatieService (ASYNC) — KVK sends mutation signal** ==
+
+kvk -[#33691E,bold]> auth : **SignaalGewijzigdeInschrijving**\nnamespace: schemas.kvk.nl/.../gewijzigdeinschrijving/2023/01\nprotocol: **WEBSERVICE** (SOAP)\nvia adapter: STUF0301WSINADAPTER
+
+note right of auth
+  **3 signal message types:**
+  
+  1. **SignaalNieuweInschrijving**
+     ""schemas.kvk.nl/.../nieuweinschrijving/2023/01""
+     → A brand new company registered
+  
+  2. **SignaalGewijzigdeInschrijving**
+     ""schemas.kvk.nl/.../gewijzigdeinschrijving/2023/01""
+     → Existing company changed (name, owner, etc.)
+  
+  3. **SignaalGewijzigdeVestiging**
+     ""schemas.kvk.nl/.../gewijzigdevestiging/2024/01""
+     → Branch/location changed (address, activity)
+  
+  **Response:** Bv03Bericht (StUF 0301)
+  **Fault:** Fo02Bericht (StUF 0301)
+end note
+
+auth -> auth : Check: Is KVK authorized?\n✅ Yes (serviceusage)
+
+auth --> kvk : **Bv03Bericht** (StUF 0301)\n"Signal received"
+
+auth -> match : Forward signal
+match -> match : Match by namespace:\nschemas.kvk.nl → KVK mutation
+
+note over match
+  **KVKMutatieService** = ASYNC
+  The signal only says "something changed"
+  — the actual data must be fetched separately.
+  
+  This triggers CML to pull the full details
+  from KVK's API.
+end note
+
+match -> router : Route to CML
+router -[#6A1B9A,bold]> cml : Signal forwarded\n(no channel routing —\nCML handles internally)
+
+== **FLOW B: KVKEventService (ASYNC) — Internal event processing** ==
+
+cml -[#6A1B9A]> auth : **KVKEventService**\nSame 3 signal types\nvia **Java** adapter (JAVAGENERICINADAPTER)\nor **WEBSERVICE** (STUF0301WSINADAPTER)
+
+note right of auth
+  **KVKEventService** is also called by:
+  • **CML** (Broker National)
+  • **CIR_NODE** (Company Registry)
+  
+  Same signals, but now processed
+  internally within the MKS platform.
+  
+  **Response:** Bv03Bericht
+  **Fault:** Fo03Bericht
+end note
+
+auth --> cml : Bv03Bericht
+
+== **FLOW C: CML fetches full company data from KVK** ==
+
+note over cml
+  CML now calls KVK's API to get
+  the **complete company record**
+  (not just the signal).
+  
+  This happens via **StUFBeantwoordVraagHR**
+  (synchronous query service).
+end note
+
+cml -[#1565C0,bold]> auth : **StUFBeantwoordVraagHR** [SYN]\n**ophalenInschrijvingRequest**\nnamespace: kvk.nl/StUF/sector/hr/kvk0300\n"Give me full details of KVK# 12345678"
+
+auth -> match : Authorized ✅ (CML, CIR, CIR_NODE)
+match -> router : Match: ophalenInschrijving
+router -[#1565C0,bold]> kvk : **WEBSERVICE** out\nadapters: NHR30INSWSOUTADAPTER\nor NHR30CLIQINSWSOUTADAPTER\nendpoint: NHRSTUFSYN\n\n→ Query goes to **KVK national API**
+
+kvk --> router : **ophalenInschrijvingResponse**\nFull company data:\n• KVK number\n• Company name\n• Legal form\n• All branches\n• Activities (SBI codes)\n• Registered persons
+
+router --> cml : Response forwarded
+
+|||
+
+cml -[#1565C0]> auth : **StUFBeantwoordVraagHR** [SYN]\n**ophalenVestigingRequest**\nnamespace: kvk.nl/StUF/sector/hr/kvk0300\n"Give me branch details"
+
+auth -> router
+router -[#1565C0]> kvk : WEBSERVICE out\nadapter: NHR30VESWSOUTADAPTER\nor NHR30CLIQVESWSOUTADAPTER
+
+kvk --> router : **ophalenVestigingResponse**\nBranch details:\n• Visiting address\n• Postal address\n• Phone, email\n• Branch activities
+
+router --> cml : Response forwarded
+
+note over cml
+  CML now has the complete
+  company data from KVK.
+  
+  **Next step:** Store it in the
+  municipal systems and convert
+  to StUF-BG format if needed.
+end note
+
+== **FLOW D: Store company data in municipal registry** ==
+
+cml -[#6A1B9A,bold]> auth : **VerwerkNHRBericht** [SYN]\nnamespace: kvk.nl/StUF/sector/hr/0300\n"Process this NHR record"
+
+auth -> match
+match -> router : Route to CIR
+router -[#6A1B9A,bold]> cir : **JAVA** out\nendpoint: CIR\nprotocol: Java internal\n\nCIR stores the company\ndata in municipal registry
+
+cir --> router : Response
+router --> cml : ✅ Stored
+
+|||
+
+cml -[#6A1B9A]> auth : **OpslaanNHR2BGService** [SYN]\n**genereerProductRespons**\nnamespace: kvk.nl/StUF/sector/hr/0300\n"Convert NHR data to BG format\nand store as person/address"
+
+note right of auth
+  **Why NHR→BG conversion?**
+  
+  Company owners (natuurlijk persoon)
+  need to exist in the BG (person)
+  registry too. This service converts
+  NHR company data into StUF-BG
+  person records so the municipality
+  has a unified view.
+end note
+
+auth -> router
+router -> cir : JAVA → CIR
+
+|||
+
+cml -[#6A1B9A]> auth : **OpslaanNHRPlusService** [SYN]\n**genereerProductRespons**\nnamespace: kvk.nl/StUF/sector/hr/0300\n"Store extended NHR data"
+
+auth -> router
+
+|||
+
+cml -[#6A1B9A]> auth : **OpslaanMaatschappelijkeActiviteitService** [SYN]\n**genereerProductRespons**\nnamespace: kvk.nl/StUF/sector/hr/0300\n"Store business activity records"
+
+note right of auth
+  **Maatschappelijke Activiteit** =
+  "Societal Activity" — the legal
+  entity behind the company.
+  
+  Called by: **CIR_NODE**, **CML**, **ZGS_SSL**
+end note
+
+auth -> router
+router -> cir : JAVA → CIR
+
+== **FLOW E: Data quality & maintenance** ==
+
+cml -[#546E7A]> auth : **KwaliteitBedrijvenService** [SYN]\n**kwaliteitBedrijvenRequest**\nnamespace: makelaarsuite.nl/kwaliteitBedrijven/0100\n"Check data quality of company records"
+
+auth -> router
+router -> cmg : **JAVA** → CMGDISTRIBUTIE\nCMG checks data quality\nand returns report
+
+cmg --> router : **kwaliteitBedrijvenResponse**
+router --> cml : Quality report
+
+|||
+
+cml -[#546E7A]> auth : **OpschonenBedrijvenService** [SYN]\n**opschonenBedrijven**\nnamespace: civision.nl/CGS/clean\n"Clean up stale company records"
+
+auth -> router
+router -> cir : **JAVA** → CIR\nRemove outdated records
+
+cir --> router : **Bv04Bericht** (confirmation)
+router --> cml : ✅ Cleaned
+
+== **FLOW F: Other apps query company data** ==
+
+note over auth, router
+  **After company data is stored, any authorized app can query it:**
+end note
+
+cir -[#1565C0]> auth : **StUFBeantwoordVraagNHR** [SYN]\nvraagBericht (nhr)\n"Query company by KVK number or name"
+
+note right of auth
+  **StUFBeantwoordVraagNHR** consumers:
+  • CIR, CIR_NODE, CML
+  
+  **StUFBeantwoordVraagNHRPLUS** consumers:
+  • CIR_NODE, CML
+  (extended NHR data)
+  
+  Routes to **NHR** provider via
+  WEBSERVICE (NHRSTUFSYN / NHRDIGSTUFSYN)
+  — currently inactive channels,
+  queries served from local CIR cache.
+end note
+
+auth -> router
+router --> cir : synchroonAntwoordBericht\nwith company data
+
+@enduml
+
+
+@startuml cgs-kvk-overview
+' ═══════════════════════════════════════════════════════════════
+'  KVK/NHR — Bird's Eye Overview
+'  All 11 services and their relationships
+' ═══════════════════════════════════════════════════════════════
+
+title **KVK / Company Changes — All Services & Message Flows**\n//11 services, 3 signal types, 5 query types, 3 storage operations//
+
+skinparam backgroundColor #FEFEFE
+skinparam defaultFontSize 11
+skinparam shadowing false
+skinparam roundcorner 15
+skinparam componentStyle rectangle
+skinparam nodesep 25
+skinparam ranksep 20
+
+' === EXTERNAL ===
+component "**KVK**\n//Kamer van Koophandel//\n(National Chamber\nof Commerce)" as kvk #F0F4C3
+
+' === INCOMING SIGNALS ===
+package "**Step 1: KVK Signals**\n\"Something changed at a company\"" as signals_pkg #FFF3E0 {
+
+  component "**KVKMutatieService** [ASYNC]\n\n**Messages IN (from KVK):**\n• SignaalNieuweInschrijving\n  (new company registration)\n• SignaalGewijzigdeInschrijving\n  (company data changed)\n• SignaalGewijzigdeVestiging\n  (branch/location changed)\n\n**Response:** Bv03Bericht\n**Fault:** Fo02Bericht\n**Consumers:** KVK" as svc_mutatie #FFE0B2
+
+  component "**KVKEventService** [ASYNC]\n\nSame 3 signal types\n(internal event processing)\n\n**Response:** Bv03Bericht\n**Fault:** Fo03Bericht\n**Consumers:** KVK, CML, CIR_NODE" as svc_event #FFE0B2
+}
+
+' === QUERIES TO KVK ===
+package "**Step 2: Fetch Full Data from KVK**\n\"Give me the complete company record\"" as queries_pkg #E3F2FD {
+
+  component "**StUFBeantwoordVraagHR** [SYN]\n\n**ophalenInschrijvingRequest**\n→ ophalenInschrijvingResponse\n(full company record)\n\n**ophalenVestigingRequest**\n→ ophalenVestigingResponse\n(branch details)\n\nns: kvk.nl/StUF/sector/hr/kvk0300\n**Consumers:** CIR, CIR_NODE, CML\n**Provider:** KVK (4 WS adapters)" as svc_hr #BBDEFB
+
+  component "**StUFBeantwoordVraagNHR** [SYN]\n\nvraagBericht (nhr format)\n→ synchroonAntwoordBericht\n\n**Consumers:** CIR, CIR_NODE, CML\n**Provider:** NHR (inactive channels)" as svc_nhr #BBDEFB
+
+  component "**StUFBeantwoordVraagNHRPLUS** [SYN]\n\nExtended NHR data query\n\n**Consumers:** CIR_NODE, CML" as svc_nhr_plus #BBDEFB
+}
+
+' === STORAGE ===
+package "**Step 3: Store in Municipal Systems**\n\"Save company data locally\"" as store_pkg #E8F5E9 {
+
+  component "**VerwerkNHRBericht** [SYN]\n\nProcess NHR record\nns: kvk.nl/StUF/sector/hr/0300\n\n**Consumers:** CML, KVK\n**Provider:** CIR (Java)" as svc_verwerk #C8E6C9
+
+  component "**OpslaanNHR2BGService** [SYN]\n\ngenereerProductRespons\n→ Convert NHR → StUF-BG\n(company owners as persons)\n\n**Consumers:** CIR_NODE, CML\n**Provider:** (no active channel)" as svc_nhr2bg #C8E6C9
+
+  component "**OpslaanNHRPlusService** [SYN]\n\ngenereerProductRespons\nStore extended NHR data\n\n**Consumers:** CIR_NODE, CML" as svc_nhrplus #C8E6C9
+
+  component "**OpslaanMaatschappelijke-\nActiviteitService** [SYN]\n\ngenereerProductRespons\nStore business activity\n(legal entity records)\n\n**Consumers:** CIR_NODE, CML, ZGS_SSL\n**Provider:** CIR (Java)" as svc_maatsch #C8E6C9
+}
+
+' === MAINTENANCE ===
+package "**Step 4: Data Quality**\n\"Keep company data clean\"" as maint_pkg #F3E5F5 {
+
+  component "**KwaliteitBedrijvenService** [SYN]\n\nkwaliteitBedrijvenRequest\n→ kwaliteitBedrijvenResponse\nns: makelaarsuite.nl/kwaliteitBedrijven\n\n**Consumer:** CML\n**Provider:** CMG (Java)" as svc_kwaliteit #E1BEE7
+
+  component "**OpschonenBedrijvenService** [SYN]\n\nopschonenBedrijven\n→ Bv04Bericht\nns: civision.nl/CGS/clean\n\n**Consumer:** CML\n**Provider:** CIR (Java)" as svc_opschonen #E1BEE7
+}
+
+' === KEY APPS ===
+component "**CML**\n//Broker National//\nOrchestrates entire\nKVK flow" as cml #E1BEE7
+component "**CIR / CIR_NODE**\n//Company Registry//\nStores & serves\ncompany data" as cir #FFF9C4
+component "**CMG**\n//Broker Data//\nData distribution\n& quality" as cmg #E1BEE7
+
+' === CONNECTIONS ===
+' Signals
+kvk -[#E65100,bold]-> svc_mutatie : 3 signal types\n(WEBSERVICE)
+svc_mutatie -[#E65100]-> cml : triggers fetch
+kvk -[#E65100]-> svc_event
+cml -[#E65100]-> svc_event : Java internal
+cir -[#E65100]-> svc_event : Java internal
+
+' Queries to KVK
+cml -[#1565C0,bold]-> svc_hr : fetch full data
+svc_hr -[#1565C0,bold]-> kvk : WEBSERVICE\n(4 out-adapters)
+cml -[#1565C0]-> svc_nhr
+cml -[#1565C0]-> svc_nhr_plus
+cir -[#1565C0]-> svc_nhr : query local cache
+
+' Storage
+cml -[#2E7D32,bold]-> svc_verwerk : store NHR
+svc_verwerk -[#2E7D32]-> cir : Java → CIR
+cml -[#2E7D32]-> svc_nhr2bg : convert NHR→BG
+cml -[#2E7D32]-> svc_nhrplus : store extended
+cml -[#2E7D32]-> svc_maatsch : store activities
+svc_maatsch -[#2E7D32]-> cir : Java → CIR
+
+' Maintenance
+cml -[#6A1B9A]-> svc_kwaliteit : check quality
+svc_kwaliteit -[#6A1B9A]-> cmg : Java → CMG
+cml -[#6A1B9A]-> svc_opschonen : clean up
+svc_opschonen -[#6A1B9A]-> cir : Java → CIR
+
+legend bottom left
+  **The complete KVK flow in 4 steps:**
+  
+  1. **Signal** — KVK tells CGS "a company changed"
+     (3 signal types via KVKMutatieService / KVKEventService)
+  
+  2. **Fetch** — CML queries KVK for full company data
+     (StUFBeantwoordVraagHR: inschrijving + vestiging queries)
+  
+  3. **Store** — CML saves data in municipal systems
+     (VerwerkNHRBericht → CIR, OpslaanNHR2BG → convert to persons,
+      OpslaanMaatschappelijkeActiviteitService → legal entities)
+  
+  4. **Maintain** — CML keeps data clean over time
+     (KwaliteitBedrijvenService, OpschonenBedrijvenService)
+  
+  **Key namespace: http://www.kvk.nl/StUF/sector/hr/kvk0300**
+endlegend
+
+@enduml

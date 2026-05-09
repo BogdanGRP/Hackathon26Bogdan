@@ -1,0 +1,792 @@
+@startuml cgs-training-1-big-picture
+' ╔══════════════════════════════════════════════════════════════════════════╗
+' ║  CGS TRAINING DIAGRAM 1/4 — THE BIG PICTURE                           ║
+' ║  "What is CGS and where does it sit?"                                  ║
+' ║  Audience: newcomers, clients, consultants                             ║
+' ║  Sources: CGSHelp PDF v2.7.17 + DB schema igp_ontwikkel_cgs_owner     ║
+' ╚══════════════════════════════════════════════════════════════════════════╝
+
+title **CiVision Municipal Service Bus (CGS) — Big Picture**\n//What CGS does and where it sits in the municipal IT landscape//\n<size:11>Source: CGSHelp PDF v2.7.17 · Database: 173 apps, 220 services, 993 transformations, 532 routing channels</size>
+
+skinparam backgroundColor #FEFEFE
+skinparam defaultFontSize 11
+skinparam packageBorderThickness 2
+skinparam componentStyle rectangle
+skinparam nodesep 40
+skinparam ranksep 30
+
+' ─── LEFT: Municipal Employees & Citizens ───
+package "Municipal Users" as users #F5F5F5 {
+  actor "Citizen\n(via portal)" as citizen
+  actor "Municipal\nEmployee" as employee
+}
+
+' ─── TOP LEFT: Front Office Applications ───
+package "Front Office Applications" as frontoffice #E8F5E9 {
+  component "iBurgerzaken\n//Civil Affairs//" as ibz #C8E6C9
+  component "FrontOffice\n//Brain, SIM, QNH,\nGemeenteWeb, GreenValley,\nLogica//" as fo #C8E6C9
+  component "CiVision Portal\n//KCC - Customer\nContact Center//" as cpt #C8E6C9
+}
+
+' ─── TOP RIGHT: DMS Partners ───
+package "Document Management" as dms_partners #E0F2F1 {
+  component "Alfresco\n//DMS (ALF)//" as alf #B2DFDB
+  component "Corsa\n//BCT DMS//" as corsa_dms #B2DFDB
+  component "Decos\n//DOCUMENT DMS//" as decos #B2DFDB
+}
+
+' ─── MIDDLE LEFT: SAP/ABAP Applications (CiVision Suite) ───
+package "CiVision Suite (Built on SAP)" as civision_sap #FFF3E0 {
+  component "CBB\n//Taxes Basis\n(Belastingen)//" as cbb_app #FFE0B2
+  component "CGA\n//Addresses &\nBuildings//" as cga_app #FFE0B2
+  component "CZA\n//Case Handling\n(Zaakafhandeling)//" as cza_app #FFE0B2
+  component "CBR\n//Basic Registration//" as cbr_app #FFE0B2
+  component "CIN\n//Tax Collection\n(Innen)//" as cin_app #FFE0B2
+  component "CMD\n//Resources\n(Middelen)//" as cmd_app #FFE0B2
+  component "CKD\n//Land Registry\n(Kadaster)//" as ckd_app #FFE0B2
+  component "CBS\n//CiVision Basis//" as cbs_app #FFE0B2
+}
+
+' ─── THE CORE: CGS ───
+package "CGS — Municipal Service Bus" as cgs_core <<Enterprise Service Bus>> #E3F2FD {
+  
+  component "**STEP 1**\nConfig Validation\n//Is this a valid service call?//" as step1 #BBDEFB
+  component "**STEP 2**\nAuthorization\n//Is this app allowed?//" as step2 #BBDEFB
+  component "**STEP 3**\nMessage Matching\n//What message format is this?//" as step3 #BBDEFB
+  component "**STEP 4**\nValidation\n//Is the message correct?//" as step4 #BBDEFB
+  component "**STEP 5**\nRouting\n//Where should it go?//" as step5 #90CAF9
+  component "**STEP 6**\nTransformation\n//Convert format if needed//" as step6 #90CAF9
+  component "**STEP 7**\nDelivery\n//Send to provider(s)//" as step7 #90CAF9
+  
+  component "Async Queue\n//Store & forward\nfor async services//" as queue #FFF9C4
+  
+  component "Logging &\nMonitoring\n//Dashboard, audit trail//" as logging #E1BEE7
+  
+  step1 -right-> step2
+  step2 -right-> step3
+  step3 -right-> step4
+  step4 -down-> step5
+  step5 -left-> step6
+  step6 -left-> step7
+  step5 .down.> queue : async only
+  queue .left.> step7 : when app is open
+  
+  step1 ..> logging
+  step5 ..> logging
+  step7 ..> logging
+}
+
+' ─── MIDDLE RIGHT: Internal Backend Applications ───
+package "Internal Backend" as internal_be #F3E5F5 {
+  component "CMG\n//Broker Data\n(Makelaarsgegevens)//" as cmg_app #E1BEE7
+  component "CML\n//Broker National\n(Landelijke Voorz.)//" as cml_app #E1BEE7
+  component "CiPers\n//Personnel\nManagement//" as cipers_app #E1BEE7
+  component "GBAVOA\n//GBA VOA\nDistribution//" as gbavoa_app #E1BEE7
+}
+
+' ─── BOTTOM LEFT: Third-Party Systems ───
+package "Third-Party Partner Systems" as thirdparty #FBE9E7 {
+  component "SquitXO\n//Roxit - Case Mgmt//" as squitxo #FFCCBC
+  component "BuitenBeter\n//Yucat - Public\nSpace Reports//" as buitenbeter #FFCCBC
+  component "JCC/G-BOS\n//JCC Software\nAppointments//" as jcc_sys #FFCCBC
+}
+
+' ─── BOTTOM: National Government Facilities ───
+package "National Government Facilities\n(via Digikoppeling / Gemnet / Internet)" as national #FCE4EC {
+  component "BRP\n//Basisregistratie\nPersonen//" as brp #F8BBD0
+  component "GBA-V\n//Gemeentelijke\nBasis Administratie//" as gbav #F8BBD0
+  component "BV-BSN\n//Beheervoorziening\nBSN//" as bvbsn #F8BBD0
+  component "LV WOZ\n//Landelijke Voorz.\nWaardering//" as lvwoz #F8BBD0
+  component "NHR / KVK\n//Handelsregister\nKamer v. Koophandel//" as nhr #F8BBD0
+  component "Kadaster\n//BRK, BAG//" as kadaster #F8BBD0
+  component "Digipoort\n//Electronic\nGovernment//" as digipoort #F8BBD0
+  component "OLO\n//Omgevingsloket\nOnline//" as olo #F8BBD0
+}
+
+' ═══════════════════════════════════════
+' CONNECTIONS — Consumer → CGS
+' ═══════════════════════════════════════
+
+citizen --> cpt : portal
+employee --> ibz : civil affairs
+employee --> cpt : KCC desk
+
+' Front Office → CGS
+ibz -[#2E7D32,bold]-> step1 : SOAP/WS\n(6 services)
+fo -[#2E7D32]-> step1 : SOAP/WS\n(StUF-BG/BZ/ZKN)
+cpt -[#2E7D32]-> step1 : SOAP/WS\n(9 services)
+
+' CiVision Suite → CGS (via ABAP)
+cbb_app -[#E65100,bold]-> step1 : ABAP/SAP JCo\n(14 services)
+cga_app -[#E65100]-> step1 : ABAP\n(8 services)
+cza_app -[#E65100,bold]-> step1 : ABAP\n(17 services)
+cin_app -[#E65100]-> step1 : ABAP\n(8 services)
+cbr_app -[#E65100]-> step1 : ABAP\n(10 services)
+cbs_app -[#E65100]-> step1 : ABAP\n(7 ITP services)
+
+' Internal Backend → CGS
+cmg_app -[#6A1B9A]-> step1 : Java (internal)
+cml_app -[#6A1B9A]-> step1 : Java (internal)\n(16 services)
+cipers_app -[#6A1B9A]-> step1 : SOAP/WS\n(8 services)
+
+' Third Party → CGS
+squitxo -[#BF360C]-> step1 : SOAP/WS\n(StUF-ZKN/LVO)
+buitenbeter -[#BF360C]-> step1 : SOAP/WS\n(StUF-EF)
+jcc_sys -[#BF360C]-> step1 : SOAP/WS
+
+' ═══════════════════════════════════════
+' CONNECTIONS — CGS → Providers
+' ═══════════════════════════════════════
+
+' To DMS
+step7 -[#00695C,bold]-> alf : CMIS\n(6 services)
+step7 -[#00695C]-> corsa_dms : CMIS
+step7 -[#00695C]-> decos : CMIS
+
+' To National
+step7 -[#AD1457,bold]-> brp : SOAP/WS\n(Bevraging +\nBijhouding)
+step7 -[#AD1457,bold]-> gbav : SOAP/WS\n(via CML)
+step7 -[#AD1457]-> bvbsn : SOAP/WS\n(BSN services)
+step7 -[#AD1457,bold]-> lvwoz : Digikoppeling\nebMS (port 8444)
+step7 -[#AD1457]-> nhr : SOAP/WS\n(KVK mutations)
+step7 -[#AD1457]-> kadaster : SOAP/WS\n(BRK, BAG, WOZ)
+step7 -[#AD1457]-> digipoort : UNIFACE\n(via STUNNEL)
+step7 -[#AD1457]-> olo : Digikoppeling\nebMS
+
+' To CiVision backends (as providers receiving fan-out)
+step7 -[#E65100]-> cbb_app : ABAP (provider)
+step7 -[#E65100]-> cga_app : ABAP (provider)
+step7 -[#E65100]-> cmg_app : Java (provider)
+
+note bottom of cgs_core
+  **CGS in one sentence:**
+  CGS is the municipal service bus that sits between all applications,
+  ensuring they can exchange data without knowing each other's protocols,
+  formats, or locations. It handles authorization, routing, transformation,
+  and delivery — all driven by configuration, not code.
+  
+  **Scale (this environment):**
+  173 registered applications · 220 active services · 660 authorizations
+  149 adapters · 532 routing channels · 993 transformations · 2065 message definitions
+end note
+
+@enduml
+
+@startuml cgs-training-2-processing-pipeline
+' ╔══════════════════════════════════════════════════════════════════════════╗
+' ║  CGS TRAINING DIAGRAM 2/4 — THE PROCESSING PIPELINE                   ║
+' ║  "What happens when a message enters CGS?"                             ║
+' ║  Step-by-step with database tables and real examples                   ║
+' ╚══════════════════════════════════════════════════════════════════════════╝
+
+title **CGS Processing Pipeline — Step by Step**\n//What happens inside CGS when a message arrives?//\n<size:11>Example: CBB sends a StUF-BG notification that a citizen moved → fans out to 19 providers</size>
+
+skinparam backgroundColor #FEFEFE
+skinparam activityBorderColor #37474F
+skinparam activityBackgroundColor #ECEFF1
+
+|#E8F5E9| Consumer Application |
+start
+:A consumer app (e.g. **CBB**)
+sends a SOAP message to CGS;
+note right
+  The message arrives on one of
+  CGS's published endpoints:
+  
+  ""https://[server]:8443/CGS/""
+  ""  StUF/services/BGAsynchroon""
+  
+  Port **8443** for normal services
+  Port **8444** for Digikoppeling/ebMS
+end note
+
+|#E3F2FD| CGS Service Bus |
+
+:== STEP 1: Configuration Validation ==
+Check: Does this service exist? 
+Is the message syntactically valid?;
+note right
+  **Reads:** `servicedefinition` (220 services)
+  **Reads:** `servicecomponentrelation` (5852 wirings)
+  
+  Finds: service = "StUFOntvangAsynchroonBG"
+  Handling = **ASYN** (asynchronous)
+  QoS = **EXACTLYONCE** (guaranteed delivery)
+end note
+
+if (Service exists and is ACTIVE?) then (yes)
+else (no)
+  :Return SOAP Fault;
+  |#E8F5E9| Consumer Application |
+  stop
+endif
+
+|#E3F2FD| CGS Service Bus |
+
+:== STEP 2: Authorization ==
+Is CBB allowed to call this service?;
+note right
+  **Reads:** `serviceusage` (660 authorizations)
+  
+  Lookup: application=CBB
+           + service=StUFOntvangAsynchroonBG
+  
+  Also checks **usage level**:
+  • **Production** → uses production endpoint config
+  • **Test** → uses test endpoint config
+end note
+
+if (Authorized?) then (yes)
+else (no)
+  :Return "Not Authorized" fault;
+  |#E8F5E9| Consumer Application |
+  stop
+endif
+
+|#E3F2FD| CGS Service Bus |
+
+:== STEP 3: Message Matching ==
+What kind of message is this?;
+note right
+  **Reads:** `messagedefinition` (2065 types)
+  
+  Matching strategy (in order):
+  1. **SOAPAction** header
+  2. **Namespace** + **messagekey**
+  3. **XPath filter** expression
+  4. **Element value**
+  
+  Example match:
+  namespace = ""http://www.egem.nl/StUF/sector/bg/0204""
+  messagekey = ""kennisgevingsBericht""
+  → This is a **StUF-BG notification** about a
+     person change (birth, move, death, etc.)
+end note
+
+:== STEP 4: Message Validation ==
+Is the message content valid?;
+note right
+  **Reads:** `validator`, `validatoraction`
+  
+  Only if service has **validation enabled**.
+  Checks XML structure against
+  message definition rules.
+  
+  If invalid → log error + return fault
+end note
+
+if (Valid message?) then (yes)
+else (no)
+  :Return validation error
+  with detailed error description;
+  |#E8F5E9| Consumer Application |
+  stop
+endif
+
+|#E3F2FD| CGS Service Bus |
+
+:== STEP 5: Dynamic Routing ==
+Where should this message go?
+(This is where the magic happens!);
+note right
+  **Reads:** `channeldefinition` (532 channels)
+  
+  For **StUFOntvangAsynchroonBG**:
+  **29 routing channels** evaluated!
+  
+  Each channel has filters:
+  • **Provider filter**: "send to CMG only"
+  • **Message filter**: "only kennisgevings"
+  • **XPath filter**: content-based routing
+  • **Organisation filter**: source/target org
+  
+  **Fan-out rule**: message goes to
+  ALL channels whose filters match.
+  
+  Result: up to **19 providers** receive
+  their own copy of this notification!
+end note
+
+:Selected channels:
+→ CMG (Broker Data)
+→ GEOTAX (Tax Geography)
+→ CWIZ
+→ CGA (Addresses)
+→ iBurgerzaken
+→ iSamenleving
+→ CML, WebNext, Corsa...
+→ **19 total providers**;
+
+|#FFF3E0| Per Channel (repeated for each matched route) |
+
+:== STEP 6: Transformation ==
+Does the provider speak a different format?;
+note right
+  **Reads:** `transformationdefinition` (993 rules)
+  
+  Common transformations:
+  • **StUF BG 0204 → StUF BG 0210**
+    (legacy Centric format)
+  • **StUF BG 0204 → StUF BG 0310**
+    (current standard)
+  • **Bv04 → Bv03** (broker confirmation
+    → application confirmation)
+  
+  Each transformation uses an **XSLT**
+  stylesheet stored in `xsltcontent`
+end note
+
+if (Is ASYNC service?) then (yes — ASYNC)
+  :== Queue Storage ==
+  Place message in **sending queue**
+  (Exactly Once = guaranteed delivery);
+  note right
+    **Runtime only** — no config table.
+    
+    Checks `applicationopeningperiod`:
+    Is the target app currently "open"?
+    • **Open** → deliver immediately
+    • **Closed** → hold in queue until
+      opening period starts
+    
+    Note: SYNC messages ignore
+    opening periods and always
+    deliver immediately!
+  end note
+  
+  :Wait for application to be open;
+  
+else (no — SYNC)
+endif
+
+|#FCE4EC| Delivery to Provider |
+
+:== STEP 7: Delivery ==
+Send message via the right protocol;
+note right
+  **Reads:** `adapterdefinition` → protocol type
+  **Reads:** `adapterendpoint` → connection point
+  **Reads:** `endpointconfiguration` → URL, credentials
+  **Reads:** `certificate` → TLS/signing cert
+  
+  **10 protocol types available:**
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━
+  WEBSERVICE (99 adapters) → SOAP/HTTP
+  JAVA (23) → Internal JVM call
+  HTTP (10) → REST-like calls
+  ABAP (4) → SAP JCo connector
+  UNIFACE (4) → via STUNNEL proxy
+  MQ (3) → IBM MQ queue
+  FTP (2) → File transfer
+  ebMS (2) → Digikoppeling
+  REST (1) → REST API
+  FILE (1) → Local file system
+end note
+
+:Provider receives message
+(e.g. CMG processes the BG notification);
+
+|#F3E5F5| Logging & Audit |
+
+:== Throughout: Complete Audit Trail ==
+Every step is logged;
+note right
+  **Writes to 4 log tables:**
+  
+  `logservicerequest` — WHO called WHAT
+    consumer=CBB, service=StUFOntvangAsynchroonBG
+    
+  `logroute` — WHERE it was sent
+    provider=CMG, endpoint=CMG_STUF
+    
+  `logaction` — WHAT happened at each step
+    ConfigValidation✓, Authorization✓,
+    MessageMatch✓, Routing✓, Delivery✓
+    
+  `logmessage` — WHAT was the content
+    Original XML, transformed XML,
+    response XML (if logging enabled)
+  
+  **Visible in CGS Dashboard** — auto-refreshing
+  monitoring with traffic counts, error rates,
+  and drill-down to individual messages
+end note
+
+stop
+
+@enduml
+
+@startuml cgs-training-3-application-landscape
+' ╔══════════════════════════════════════════════════════════════════════════╗
+' ║  CGS TRAINING DIAGRAM 3/4 — APPLICATION LANDSCAPE                     ║
+' ║  "Who connects to what and how?"                                       ║
+' ║  Complete map of all documented application connections                ║
+' ╚══════════════════════════════════════════════════════════════════════════╝
+
+title **CGS Application Landscape — Who Connects to What**\n//Every documented application, its connection type, and authorized services//\n<size:11>Sources: CGSHelp PDF p.115-139 (initial authorizations) + real DB data (173 apps, 660 serviceusage rows)</size>
+
+skinparam backgroundColor #FEFEFE
+skinparam defaultFontSize 10
+skinparam componentStyle rectangle
+skinparam linetype ortho
+
+' ══════════════════════════════════════════════════════════════
+' CENTER: CGS Service Categories
+' ══════════════════════════════════════════════════════════════
+
+package "CGS Service Catalog — 220 Active Services in 16 Categories" as svc_catalog #E3F2FD {
+
+  package "StUF Services (59)" as stuf_services #BBDEFB {
+    component "StUF-BG\n//Burgerzaken//\nPersons, Addresses\n(5 services)" as bg_svc
+    component "StUF-ZKN\n//Zaakgericht//\nCases\n(7 services)" as zkn_svc
+    component "StUF-WOZ\n//Waardering//\nProperty Valuation\n(5 services)" as woz_svc
+    component "StUF-BZ\n//Belastingen//\nTax Items\n(2 services)" as bz_svc
+    component "StUF-EF\n//e-Formulieren//\nForms\n(1 service)" as ef_svc
+    component "StUF Other\n//LVO, DCR, FIN,\nGGK, BAG-Geo,\nBOR-Geo, BGT//\n(40 services)" as stuf_other
+  }
+  
+  package "National Facility Services (13)" as nat_services #F8BBD0 {
+    component "BRP\n//Bevraging +\nBijhouding//\n(2 services)" as brp_svc
+    component "GBA-V\n//Person Dossier,\nTake-over, Password//\n(5+ services)" as gbav_svc
+    component "BV-BSN\n//BSN Stock,\nPresence, Verify//\n(4+ services)" as bvbsn_svc
+  }
+  
+  package "Integration Services" as int_services #FFE0B2 {
+    component "CMG/CMM\n//Broker Data,\nDistribution API,\nMagazine API//\n(5 services)" as cmg_svc
+    component "CMIS\n//Document Mgmt\nNavigation, Object,\nDiscovery, Versioning//\n(6 services)" as cmis_svc
+    component "ITP\n//Printing,\nDocument Gen//\n(7 services)" as itp_svc
+  }
+  
+  package "Domain Services (119)" as domain_services #C8E6C9 {
+    component "Domain Specific\n//RDW, KVK, Digipoort,\nBerichtenbox, FTP,\nJCC, KCR, AWR,\nSimpler Invoicing,\nEOS, E-mail...//\n(119 services)" as domain_svc
+  }
+  
+  package "Test & Ops (7)" as test_services #ECEFF1 {
+    component "Test &\nOperational\n//Config Test,\nOperational Info//\n(7 services)" as test_svc
+  }
+}
+
+' ══════════════════════════════════════════════════════════════
+' LEFT: Consumer Applications (grouped by connection type)
+' ══════════════════════════════════════════════════════════════
+
+package "ABAP / SAP JCo Consumers" as abap_consumers #FFF3E0 {
+  component "CGA //Addresses// (8)" as c_cga
+  component "CBB //Taxes// (14)" as c_cbb
+  component "CIN //Collection// (8)" as c_cin
+  component "CKD //Land Reg.// (8)" as c_ckd
+  component "CMD //Resources// (8)" as c_cmd
+  component "CBR //Basic Reg.// (10)" as c_cbr
+  component "CBS //Basis// (7)" as c_cbs
+  component "CZA //Cases// (17)" as c_cza
+}
+
+package "WebService / Certificate Consumers" as ws_consumers #E8F5E9 {
+  component "iBurgerzaken (6)" as c_ibz
+  component "CiPers //Personnel// (8)" as c_cipers
+  component "Portal/KCC (9)" as c_cpt
+  component "Legacy HRS/OIS (2)" as c_legacy
+}
+
+package "Internal (Java) Consumers" as java_consumers #F3E5F5 {
+  component "CMG //Broker Data// (2)" as c_cmg
+  component "CML //Broker Natl.// (16)" as c_cml
+  component "GBAVOA (1)" as c_gbavoa
+}
+
+package "Third-Party Consumers" as tp_consumers #FBE9E7 {
+  component "**FrontOffice** group\n//Brain, SIM, QNH,\nGemeenteWeb, GreenValley,\nLogica//" as c_fo
+  component "**DMS** group\n//BCT(Corsa), Circle\n(Verseon), Decos//" as c_dms_grp
+  component "SquitXO //Roxit//" as c_squitxo
+  component "BuitenBeter //Yucat//" as c_buiten
+  component "JCC //G-BOS//" as c_jcc
+  component "OLO //Omgevingsloket//" as c_olo
+}
+
+' ══════════════════════════════════════════════════════════════
+' RIGHT: Provider Systems
+' ══════════════════════════════════════════════════════════════
+
+package "Provider Systems\n(where CGS delivers to)" as providers #FCE4EC {
+  
+  package "Internal Providers" as int_prov {
+    component "CMG //via Java//" as p_cmg
+    component "CBB //via ABAP//" as p_cbb
+    component "CGA //via ABAP//" as p_cga
+    component "CZA //via ABAP//" as p_cza
+    component "CML //via Java//" as p_cml
+  }
+  
+  package "DMS Providers //via CMIS//" as dms_prov {
+    component "Alfresco (ALF)" as p_alf
+    component "Corsa (BCT)" as p_corsa
+    component "Decos (DOCUMENT)" as p_decos
+  }
+  
+  package "National //via Digikoppeling//" as nat_prov {
+    component "BRP" as p_brp
+    component "GBA-V" as p_gbav
+    component "BV-BSN" as p_bvbsn
+    component "LV WOZ //ebMS//" as p_lvwoz
+    component "NHR/KVK" as p_nhr
+    component "Kadaster" as p_kad
+    component "Digipoort //UNIFACE//" as p_digi
+    component "OLO //ebMS//" as p_olo
+  }
+}
+
+' ══════════════════════════════════════════════════════════════
+' CONNECTIONS: Consumers → Service Categories
+' ══════════════════════════════════════════════════════════════
+
+' ABAP consumers → services
+c_cga -[#E65100]-> cmg_svc
+c_cga -[#E65100]-> bg_svc
+c_cbb -[#E65100]-> cmg_svc
+c_cbb -[#E65100]-> bg_svc
+c_cbb -[#E65100]-> woz_svc
+c_cbb -[#E65100]-> zkn_svc
+c_cin -[#E65100]-> cmg_svc
+c_cin -[#E65100]-> bg_svc
+c_ckd -[#E65100]-> cmg_svc
+c_cmd -[#E65100]-> cmg_svc
+c_cbr -[#E65100]-> cmg_svc
+c_cbr -[#E65100]-> bg_svc
+c_cbr -[#E65100]-> zkn_svc
+c_cbr -[#E65100]-> gbav_svc
+c_cbs -[#E65100]-> itp_svc
+c_cza -[#E65100]-> cmg_svc
+c_cza -[#E65100]-> bg_svc
+c_cza -[#E65100]-> zkn_svc
+c_cza -[#E65100]-> cmis_svc
+
+' WebService consumers → services
+c_ibz -[#2E7D32]-> brp_svc
+c_ibz -[#2E7D32]-> cmis_svc
+c_cipers -[#2E7D32]-> gbav_svc
+c_cipers -[#2E7D32]-> bvbsn_svc
+c_cipers -[#2E7D32]-> zkn_svc
+c_cpt -[#2E7D32]-> bg_svc
+c_cpt -[#2E7D32]-> bz_svc
+c_cpt -[#2E7D32]-> woz_svc
+c_cpt -[#2E7D32]-> zkn_svc
+c_cpt -[#2E7D32]-> domain_svc
+c_legacy -[#2E7D32]-> bg_svc
+
+' Java consumers → services
+c_cmg -[#6A1B9A]-> bg_svc
+c_cml -[#6A1B9A]-> gbav_svc
+c_cml -[#6A1B9A]-> bvbsn_svc
+
+' Third-party → services
+c_fo -[#BF360C]-> bg_svc
+c_fo -[#BF360C]-> bz_svc
+c_fo -[#BF360C]-> gbav_svc
+c_dms_grp -[#BF360C]-> zkn_svc
+c_dms_grp -[#BF360C]-> bg_svc
+c_squitxo -[#BF360C]-> zkn_svc
+c_squitxo -[#BF360C]-> stuf_other
+c_buiten -[#BF360C]-> ef_svc
+c_jcc -[#BF360C]-> domain_svc
+c_olo -[#BF360C]-> stuf_other
+
+' ══════════════════════════════════════════════════════════════
+' CONNECTIONS: Service Categories → Providers
+' ══════════════════════════════════════════════════════════════
+
+bg_svc -[#1565C0]-> p_cmg : fan-out
+bg_svc -[#1565C0]-> p_cbb
+bg_svc -[#1565C0]-> p_cga
+bg_svc -[#1565C0]-> p_cza
+zkn_svc -[#1565C0]-> p_cza
+zkn_svc -[#1565C0]-> p_cmg
+cmis_svc -[#00695C]-> p_alf
+cmis_svc -[#00695C]-> p_corsa
+cmis_svc -[#00695C]-> p_decos
+brp_svc -[#AD1457]-> p_brp
+gbav_svc -[#AD1457]-> p_gbav
+bvbsn_svc -[#AD1457]-> p_bvbsn
+woz_svc -[#AD1457]-> p_lvwoz
+cmg_svc -[#6A1B9A]-> p_cmg
+stuf_other -[#AD1457]-> p_olo
+domain_svc -[#AD1457]-> p_digi
+domain_svc -[#AD1457]-> p_nhr
+
+legend right
+  **Connection Protocols:**
+  |= Color |= Protocol |= Count |
+  |<#E65100> | ABAP / SAP JCo | 4 adapters |
+  |<#2E7D32> | WebService / SOAP | 99 adapters |
+  |<#6A1B9A> | Java (internal) | 23 adapters |
+  |<#BF360C> | Third-Party (WS) | via WS |
+  |<#1565C0> | Internal delivery | various |
+  |<#AD1457> | National / External | ebMS, WS, UNIFACE |
+  |<#00695C> | CMIS (DMS) | 6 services |
+  
+  **(N)** = number of authorized services
+endlegend
+
+@enduml
+
+@startuml cgs-training-4-message-formats
+' ╔══════════════════════════════════════════════════════════════════════════╗
+' ║  CGS TRAINING DIAGRAM 4/4 — MESSAGE FORMATS & TRANSFORMATIONS         ║
+' ║  "What message languages does CGS speak?"                              ║
+' ║  StUF version families, transformation chains, and fault handling      ║
+' ╚══════════════════════════════════════════════════════════════════════════╝
+
+title **CGS Message Formats & Transformation Engine**\n//How CGS translates between message versions so every application understands every other//\n<size:11>2065 message definitions · 993 transformations · Top used: Fo03Bericht (2431× as fault), Bv04Bericht (1570× as response)</size>
+
+skinparam backgroundColor #FEFEFE
+skinparam defaultFontSize 10
+skinparam packageStyle rectangle
+
+' ══════════════════════════════════════════════════════════════
+' TOP: The StUF Version Family Tree
+' ══════════════════════════════════════════════════════════════
+
+package "StUF Standard — Message Format Families" as stuf_tree #FFFDE7 {
+  
+  package "StUF Framework Versions" as framework {
+    component "**StUF 0204**\n//Legacy framework//\nUsed by older CiVision\napplications" as stuf0204 #FFF9C4
+    component "**StUF 0301**\n//Current framework//\nUsed by modern\napplications" as stuf0301 #FFF59D
+    component "**StUF 0210**\n//Centric variant//\nPRLG-specific\nextension" as stuf0210 #FFEE58
+  }
+  
+  package "StUF Sector Models (domains)" as sectors {
+    
+    package "BG — Burgerzaken (Persons & Addresses)" as bg_sector #C8E6C9 {
+      component "**BG 0204**\n//vraagBericht//\n471× request\n102 transformations" as bg0204
+      component "**BG 0310**\n//Standard BG//\nnew applications" as bg0310
+      component "**BG 0210**\n//Centric BG//\n113 transformations" as bg0210
+    }
+    
+    package "ZKN — Zaakgericht (Cases)" as zkn_sector #BBDEFB {
+      component "**ZKN 0201**\n//Legacy case//\nformat" as zkn0201
+      component "**ZKN 0310**\n//Current case//\nformat + ZS-DMS" as zkn0310
+    }
+    
+    package "WOZ — Waardering (Property)" as woz_sector #FFCCBC {
+      component "**WOZ 0312**\n//Valuation//\nmessages" as woz0312
+    }
+    
+    package "Other Sector Models" as other_sectors #E0E0E0 {
+      component "BZ\n//Taxes//" as bz_model
+      component "EF\n//e-Forms//" as ef_model
+      component "LVO\n//OLO//" as lvo_model
+      component "WKPB\n//Restrictions//" as wkpb_model
+      component "NHR\n//Companies//" as nhr_model
+    }
+  }
+}
+
+' ══════════════════════════════════════════════════════════════
+' MIDDLE: Transformation Engine
+' ══════════════════════════════════════════════════════════════
+
+package "CGS Transformation Engine — 993 XSLT Rules" as transform_engine #E3F2FD {
+  
+  package "Version Transformations" as ver_trans {
+    component "StUF BG 0204\n**↔**\nStUF BG 0210" as t_bg_204_210 #90CAF9
+    component "StUF BG 0204\n**↔**\nStUF BG 0310" as t_bg_204_310 #90CAF9
+    component "StUF BG 0210\n**↔**\nStUF BG 0310" as t_bg_210_310 #90CAF9
+    component "StUF 0204\n**↔**\nStUF 0301" as t_0204_0301 #90CAF9
+  }
+  
+  package "Protocol Transformations" as proto_trans {
+    component "**Bv04 → Bv03**\nBroker confirm →\nApp confirm" as t_bv04 #FFF59D
+    component "**wildCardRequest**\nCustom XSLT\n(any format)" as t_wild #FFF59D
+  }
+}
+
+' ══════════════════════════════════════════════════════════════
+' BOTTOM: Message Types & Their Usage
+' ══════════════════════════════════════════════════════════════
+
+package "Most-Used Message Types (from real database)" as msg_usage #FFF3E0 {
+  
+  package "Request Messages\n(incoming questions & notifications)" as req_msgs #C8E6C9 {
+    component "**vraagBericht**\nStUF BG 0204\n//471× as request//\n//102 transformations//" as msg_vraag
+    component "**kennisgevingsBericht**\nStUF BG 0204\n//354× as request//\n//107 transformations//" as msg_kennis
+    component "**asynchroonAntwoordBericht**\nStUF BG 0204\n//228× as request//\n//99 transformations//" as msg_async_antw
+  }
+  
+  package "Response Messages\n(confirmations & answers)" as resp_msgs #BBDEFB {
+    component "**Bv04Bericht**\nStUF 0301\n//1570× as response//\n(broker confirmation)" as msg_bv04
+    component "**Bv03Bericht**\nStUF 0301\n//893× as response//\n(app confirmation)" as msg_bv03
+    component "**bevestigingsBericht**\nStUF 0204\n//925× as response//" as msg_bevest204
+    component "**bevestigingsBericht**\nStUF 0210\n//387× as response//" as msg_bevest210
+    component "**synchroonAntwoordBericht**\nStUF BG 0204\n//258× as response//\n//118 transformations//" as msg_sync_antw
+  }
+  
+  package "Fault Messages\n(errors)" as fault_msgs #FFCDD2 {
+    component "**Fo03Bericht**\nStUF 0301\n//2431× as fault//\n(MOST USED MSG!)" as msg_fo03
+    component "**Foutbericht**\nCGS internal\n//1403× as fault//\n//31 transformations//" as msg_fout
+    component "**Fo02Bericht**\nStUF 0301\n//588× as fault//" as msg_fo02
+    component "**foutBericht**\nStUF 0204\n//575× as fault//" as msg_fout204
+  }
+}
+
+' ══════════════════════════════════════════════════════════════
+' TRANSFORMATION ARROWS
+' ══════════════════════════════════════════════════════════════
+
+' Version tree connections
+stuf0204 -[#E65100,bold]-> stuf0301 : evolution
+stuf0204 -[#E65100]-> stuf0210 : Centric variant
+stuf0301 -[#E65100,dashed]-> stuf0210 : co-exists
+
+' Sector model connections
+bg0204 -[#2E7D32]-> t_bg_204_210
+bg0204 -[#2E7D32]-> t_bg_204_310
+bg0210 -[#2E7D32]-> t_bg_210_310
+
+t_bg_204_210 -[#2E7D32]-> bg0210
+t_bg_204_310 -[#2E7D32]-> bg0310
+t_bg_210_310 -[#2E7D32]-> bg0310
+
+' Bv04 → Bv03 transformation
+msg_bv04 -[#E65100,bold]-> t_bv04 : Routing applies\nresponse transformation
+t_bv04 -[#E65100,bold]-> msg_bv03 : End applications\nreceive Bv03
+
+' Fault chain
+msg_fo03 -[#D32F2F,dashed]-> msg_fout : can transform\nto CGS format
+msg_fout -[#D32F2F,dashed]-> msg_fout204 : can transform\nto StUF 0204
+
+note bottom of transform_engine
+  **Why transformations exist:**
+  
+  Different applications were built at different times
+  and support different StUF versions:
+  
+  • **Old SAP apps** (CBB, CGA, CIN...) → StUF BG **0204**
+  • **New apps** (modern portals) → StUF BG **0310**
+  • **Centric apps** → StUF BG **0210**
+  
+  When CBB sends a notification in StUF 0204 format,
+  CGS automatically transforms it to 0210 for apps
+  that need 0210, and to 0310 for apps that need 0310.
+  
+  **Without CGS:** each app would need N×N adapters
+  **With CGS:** each app speaks its own language,
+  CGS translates in the middle.
+  
+  This is the core value proposition of the ESB.
+end note
+
+note right of fault_msgs
+  **Fo03Bericht is #1 most used message**
+  
+  Every failed service call returns a
+  StUF 0301 Fo03 fault message.
+  It's used 2431 times across all
+  service component relations — more
+  than any request or response type.
+  
+  This means **fault handling is the
+  single most configured aspect
+  of CGS**. Every service needs
+  to know how to report errors.
+end note
+
+@enduml

@@ -1,0 +1,772 @@
+@startuml cgs-complete-flow-architecture
+' ============================================================================
+' CGS Complete System Flow Architecture
+' Based on: cgs-flow-queries.sql
+' Purpose: Human-level understanding of all possible flows through CGS
+' ============================================================================
+
+title CGS System Architecture - All Flow Paths\nBased on Database Relationship Analysis
+
+' ============================================================================
+' FLOW PATH 1: Authorization & Service Usage
+' Query: Flow 1 (serviceusage table)
+' ============================================================================
+
+package "Consumer Applications" as consumers {
+    component [ROSWOZ] as roswoz
+    component [TERCERA] as tercera
+    component [GEODATA] as geodata
+    component [KLIC] as klic
+    component [CLIQ] as cliq
+}
+
+package "CGS Service Bus" as cgs_core {
+    ' Service Catalog
+    package "Service Catalog\n(220 active services)" as service_catalog {
+        component [iLogboekService] as ilogboek_svc
+        component [GeodataService] as geodata_svc
+        component [StUF-BG Services\n(60 services)] as stuf_services
+        component [Query Services\n(31 services)] as query_services
+        component [Other Services\n(107 services)] as other_services
+    }
+    
+    ' Implementation Layer
+    package "Service Implementation\n(servicecomponentrelation)" as implementation {
+        component [HTTP Adapter] as http_adapter
+        component [WebService Adapter] as ws_adapter
+        component [MQ Adapter] as mq_adapter
+        component [CMIS Adapter] as cmis_adapter
+        component [ebMS Adapter] as ebms_adapter
+        component [File Adapter] as file_adapter
+        component [Java Adapter] as java_adapter
+    }
+    
+    ' Message Processing
+    package "Message Layer\n(32 message types)" as message_layer {
+        component [Message Matcher] as matcher
+        component [Message Validator] as validator
+        component [Transformation Engine\n(5 XSLT transforms)] as transformer
+    }
+    
+    ' Routing & Channels
+    package "Routing Layer\n(14 active channels)" as routing {
+        component [Channel Router] as router
+        component [Dynamic Filter] as filter
+    }
+}
+
+package "Provider Applications" as providers {
+    component [ROSWOZ\n(Provider)] as roswoz_provider
+    component [TERCERA\n(Provider)] as tercera_provider
+    component [GEODATA\n(Provider)] as geodata_provider
+    component [External DMS] as dms_provider
+    component [Digikoppeling] as ebms_provider
+}
+
+package "Adapter Endpoints\n(14 endpoints)" as endpoints {
+    component [ROSWOZ Endpoint] as roswoz_endpoint
+    component [TERCERA Endpoint] as tercera_endpoint
+    component [GEODATA Endpoint] as geodata_endpoint
+    component [CMIS Repository] as cmis_endpoint
+    component [ebMS Gateway] as ebms_endpoint
+}
+
+package "Logging & Audit" as logging {
+    database [LogServiceRequest\n(22 recent)] as log_request
+    database [LogRoute\n(per hop)] as log_route
+    database [LogAction\n(148 actions)] as log_action
+    database [LogMessage\n(66 messages)] as log_message
+}
+
+' ============================================================================
+' RELATIONSHIPS: Authorization Flow (Query 1)
+' ============================================================================
+
+roswoz -down-> ilogboek_svc : <<Association>>\ncan use
+roswoz -down-> geodata_svc : <<Association>>\ncan use
+tercera -down-> query_services : <<Association>>\ncan use
+geodata -down-> geodata_svc : <<Association>>\ncan use
+cliq -down-> ilogboek_svc : <<Association>>\ncan use
+
+note right of roswoz
+  **657 total service usage**
+  **authorizations across**
+  **7 consumer applications**
+end note
+
+' ============================================================================
+' RELATIONSHIPS: Implementation Flow (Query 2)
+' ============================================================================
+
+ilogboek_svc -down-> java_adapter : <<Realization>>\nimplemented by
+geodata_svc -down-> ws_adapter : <<Realization>>\nimplemented by
+stuf_services -down-> ws_adapter : <<Realization>>\nimplemented by
+query_services -down-> http_adapter : <<Realization>>\nimplemented by
+query_services -down-> ws_adapter : <<Realization>>\nimplemented by
+
+note right of implementation
+  **servicecomponentrelation**
+  **defines which adapter**
+  **implements each service**
+  
+  **41 service-adapter bindings**
+end note
+
+' ============================================================================
+' RELATIONSHIPS: Message Processing Flow (Query 2 & 4)
+' ============================================================================
+
+ilogboek_svc -down-> matcher : <<Flow>>\nrequest message
+geodata_svc -down-> matcher : <<Flow>>\nrequest message
+
+matcher -right-> validator : <<Flow>>\nmatched message\n(messagedefinition_id)
+validator -right-> transformer : <<Flow>>\nvalidated message
+transformer -down-> router : <<Flow>>\ntransformed message
+
+note bottom of message_layer
+  **Message Matching Strategy:**
+  1. SOAPAction header
+  2. Namespace + MessageKey
+  3. Root element name
+  4. XPath filter
+  
+  **32 message definitions**
+  **5 XSLT transformations**
+end note
+
+' ============================================================================
+' RELATIONSHIPS: Routing Flow (Query 3)
+' ============================================================================
+
+router -down-> filter : <<Flow>>\nfilter by application\n& message type
+filter -down-> roswoz_endpoint : <<Flow>>\nroute to endpoint
+filter -down-> tercera_endpoint : <<Flow>>\nroute to endpoint
+filter -down-> geodata_endpoint : <<Flow>>\nroute to endpoint
+filter -down-> cmis_endpoint : <<Flow>>\nroute to endpoint
+filter -down-> ebms_endpoint : <<Flow>>\nroute to endpoint
+
+note right of routing
+  **channeldefinition table**
+  **14 active routing rules**
+  
+  Filters by:
+  • Provider application
+  • Consumer organization
+  • Message type
+  • XPath expressions
+end note
+
+' ============================================================================
+' RELATIONSHIPS: Endpoint to Provider Flow (Query 3 & 6)
+' ============================================================================
+
+roswoz_endpoint -down-> roswoz_provider : <<Serving>>\nconnects to\n(HTTP/SOAP)
+tercera_endpoint -down-> tercera_provider : <<Serving>>\nconnects to\n(WebService)
+geodata_endpoint -down-> geodata_provider : <<Serving>>\nconnects to\n(HTTP)
+cmis_endpoint -down-> dms_provider : <<Serving>>\nconnects to\n(CMIS Browser)
+ebms_endpoint -down-> ebms_provider : <<Serving>>\nconnects to\n(ebMS 2.0)
+
+note bottom of endpoints
+  **491 endpoint configurations**
+  
+  Protocols supported:
+  • HTTP/REST
+  • SOAP/WS-*
+  • IBM MQ
+  • CMIS (Document Mgmt)
+  • ebMS (Digikoppeling)
+  • File Transfer
+end note
+
+' ============================================================================
+' RELATIONSHIPS: Logging Flow (Query 5)
+' ============================================================================
+
+matcher ..> log_message : <<logs>>\nrequest/response\n(messagekey, namespace)
+router ..> log_request : <<logs>>\nservice request\n(consumer, service, provider)
+roswoz_endpoint ..> log_route : <<logs>>\nroute hop\n(endpoint, duration)
+tercera_endpoint ..> log_route : <<logs>>\nroute hop
+geodata_endpoint ..> log_route : <<logs>>\nroute hop
+
+log_request *-down- log_route : <<Composition>>\ncontains routes
+log_route *-down- log_action : <<Composition>>\ncontains actions
+log_request -down-> log_message : <<Association>>\nreferences\nrequest/response
+
+note right of logging
+  **Runtime Flow Tracking**
+  
+  • 22 recent service requests
+  • 22 routing hops logged
+  • 148 granular actions
+  • 66 full message payloads
+  
+  Enables:
+  • Performance analysis
+  • Error diagnosis
+  • Audit trail
+  • Impact analysis
+end note
+
+' ============================================================================
+' TRANSFORMATION FLOW DETAIL
+' ============================================================================
+
+package "Message Transformation\nDetail (Query 4)" as transform_detail {
+    component [StUF 3.10\nMessage] as stuf_310
+    component [StUF 2.04\nMessage] as stuf_204
+    component [XSLT Stylesheet] as xslt
+    
+    stuf_310 -right-> xslt : <<Access>>\nuses transformation
+    xslt -right-> stuf_204 : <<Flow>>\nproduces
+}
+
+transformer .down.> transform_detail : <<implements>>
+
+note bottom of transform_detail
+  **5 transformations configured**
+  **1 XSLT content entry**
+  
+  Used in:
+  • Request transformations
+  • Response transformations
+  • Format conversions
+end note
+
+@enduml
+
+@startuml cgs-runtime-flow-sequence
+' ============================================================================
+' CGS Runtime Message Flow - Sequence Diagram
+' Based on: Query 5 (logservicerequest, logroute, logaction)
+' Purpose: Show actual runtime behavior with all steps
+' ============================================================================
+
+title CGS Runtime Message Flow\nBased on Production Log Analysis (Query 5)
+
+actor "Consumer App\n(ROSWOZ)" as consumer
+participant "CGS\nService Bus" as cgs
+database "serviceusage\ntable" as auth_db
+database "messagedefinition\ntable" as msg_db
+participant "Message\nMatcher" as matcher
+participant "Message\nValidator" as validator
+database "transformationdefinition\ntable" as trans_db
+participant "Transformation\nEngine" as transformer
+database "channeldefinition\ntable" as channel_db
+participant "Channel\nRouter" as router
+participant "Adapter\nEndpoint" as endpoint
+actor "Provider App\n(TERCERA)" as provider
+database "logservicerequest\ntable" as log_req
+database "logroute\ntable" as log_route
+database "logmessage\ntable" as log_msg
+
+== Phase 1: Authorization Check (Query 1) ==
+
+consumer -> cgs : SOAP Request\n<servicename>GeodataService</servicename>
+activate cgs
+
+cgs -> auth_db : **Query: Check authorization**\nSELECT * FROM serviceusage\nWHERE application_id = :roswoz_id\n  AND servicedefinition_id = :service_id
+auth_db --> cgs : ✓ Authorized (serviceusage entry exists)
+
+cgs -> log_req : **INSERT** logservicerequest\n(consumer='ROSWOZ',\nservicename='GeodataService')
+activate log_req
+
+== Phase 2: Message Matching (Query 4.2) ==
+
+cgs -> matcher : Parse SOAP envelope
+activate matcher
+
+matcher -> msg_db : **Query: Match by SOAPAction**\nSELECT * FROM messagedefinition\nWHERE soapaction = :soap_action
+msg_db --> matcher : Match found (messagedefinition_id=15)
+
+matcher -> cgs : messagedefinition_id = 15
+deactivate matcher
+
+== Phase 3: Validation (Query 2.1) ==
+
+cgs -> validator : Validate message structure
+activate validator
+
+validator -> msg_db : Check validationactive flag
+msg_db --> validator : validationactive = true
+
+validator -> validator : Validate against XSD schema
+validator -> cgs : ✓ Valid
+deactivate validator
+
+== Phase 4: Transformation Check (Query 4.1) ==
+
+cgs -> trans_db : **Query: Find transformation**\nSELECT td.*, xc.content\nFROM transformationdefinition td\nJOIN channeldefinition cd\n  ON cd.requesttransformation_id = td.id\nWHERE cd.servicedefinition_id = :service_id\n  AND td.messagedefinitionoriginal_id = 15
+trans_db --> cgs : transformation_id = 3
+
+cgs -> transformer : Transform message (id=3)
+activate transformer
+
+transformer -> transformer : Apply XSLT stylesheet\n(StUF 3.10 → StUF 2.04)
+transformer -> cgs : Transformed message
+deactivate transformer
+
+cgs -> log_msg : **INSERT** logmessage\n(messagekey='GetGeodata',\nmessage=<transformed_xml>)
+
+== Phase 5: Routing (Query 3.1) ==
+
+cgs -> channel_db : **Query: Find active channel**\nSELECT cd.*, ae.name\nFROM channeldefinition cd\nJOIN adapterendpoint ae\n  ON cd.adapterendpoint_id = ae.id\nWHERE cd.servicedefinition_id = :service_id\n  AND cd.filterprovidingapplication_id = :provider_id\n  AND cd.active = true
+channel_db --> cgs : channeldefinition_id = 8,\nadapterendpoint_id = 3
+
+cgs -> router : Route to endpoint (id=3)
+activate router
+
+router -> log_route : **INSERT** logroute\n(logservicerequest_id=:lsr_id,\nadapterendpointname='TERCERA_ENDPOINT')
+activate log_route
+
+== Phase 6: Adapter Execution (Query 6.1) ==
+
+router -> endpoint : Send via HTTP adapter
+activate endpoint
+
+endpoint -> provider : HTTP POST\nhttps://tercera.example.nl/api/geodata
+activate provider
+
+provider -> provider : Process request
+
+provider --> endpoint : HTTP 200 OK\n<response>
+deactivate provider
+
+endpoint --> router : Response received
+deactivate endpoint
+
+router -> log_route : **UPDATE** logroute\n(responsetimestamp=NOW(),\nstatus='SUCCESS')
+
+== Phase 7: Response Transformation ==
+
+router -> trans_db : **Query: Find response transformation**\nSELECT td.*\nFROM channeldefinition cd\nJOIN transformationdefinition td\n  ON cd.responsetransformation_id = td.id\nWHERE cd.id = 8
+trans_db --> router : transformation_id = 4
+
+router -> transformer : Transform response (id=4)
+activate transformer
+
+transformer -> transformer : Apply XSLT stylesheet\n(StUF 2.04 → StUF 3.10)
+transformer -> router : Transformed response
+deactivate transformer
+
+router -> log_msg : **INSERT** logmessage\n(messagekey='GetGeodataResponse',\nmessage=<response_xml>)
+
+router -> cgs : Response ready
+deactivate router
+deactivate log_route
+
+== Phase 8: Response Delivery ==
+
+cgs -> log_req : **UPDATE** logservicerequest\n(responsetimestamp=NOW(),\nstatus='SUCCESS',\nerroroccurred=false)
+deactivate log_req
+
+cgs --> consumer : SOAP Response\n<soapenv:Envelope>
+deactivate cgs
+
+note over consumer, log_msg
+  **Query 5.1: Recent service request flows**
+  This sequence represents one row in logservicerequest
+  with associated logroute and logmessage entries.
+  
+  **Typical Performance (Query 5.2):**
+  • Average duration: ~250ms
+  • Error rate: ~2%
+  • 1000+ requests/day for popular services
+  
+  **Complete audit trail captured for:**
+  • Compliance requirements
+  • Performance monitoring
+  • Error diagnosis
+  • Impact analysis
+end note
+
+@enduml
+
+@startuml cgs-configuration-flow
+' ============================================================================
+' CGS Configuration Flow - Activity Diagram
+' Based on: Query 9.1 (Complete End-to-End Flow)
+' Purpose: Show how configuration tables relate for setup
+' ============================================================================
+
+title CGS Service Configuration Flow\nHow to Add a New Service (Based on Database Relationships)
+
+|Administrator|
+start
+:Requirement: Integrate\nnew provider application;
+
+|Database Configuration|
+:1. INSERT INTO **application**\n(name, description);
+note right
+  **Query reference:** Flow 1, 3, 6
+  Creates provider application entry
+end note
+
+:2. INSERT INTO **adapterdefinition**\n(name, adaptertype, direction)\nOR use existing adapter;
+note right
+  **Query reference:** Flow 2
+  7 adapter types available:
+  HTTP, WEBSERVICE, MQ,
+  CMIS, EBMS, FILE, JAVA
+end note
+
+:3. INSERT INTO **adapterendpoint**\n(name, adapterdefinition_id,\napplicationalias_id);
+note right
+  **Query reference:** Flow 3, 6
+  Creates endpoint instance
+  bound to application
+end note
+
+:4. INSERT INTO **endpointconfiguration**\n(adapterendpoint_id,\nurl, credentials, protocol settings);
+note right
+  **Query reference:** Flow 6
+  491 configurations exist
+  Protocol-specific settings
+end note
+
+if (Need message format conversion?) then (yes)
+  :5a. INSERT INTO **messagedefinition**\n(messagekey, namespace, soapaction);
+  note right
+    **Query reference:** Flow 4
+    32 message types defined
+    Used for matching & routing
+  end note
+  
+  :5b. INSERT INTO **xsltcontent**\n(content, description);
+  
+  :5c. INSERT INTO **transformationdefinition**\n(messagedefinitionoriginal_id,\nmessagedefinitiontarget_id,\ncontent_id);
+  note right
+    **Query reference:** Flow 4
+    5 transformations configured
+    XSLT-based conversion
+  end note
+else (no)
+endif
+
+:6. INSERT INTO **servicedefinition**\n(name, handling, status);
+note right
+  **Query reference:** Flow 1, 2, 3
+  220 active services
+  SYN or ASYN handling
+end note
+
+:7. INSERT INTO **servicecomponentrelation**\n(servicedefinition_id,\nadapterdefinition_id,\nmessagedefinitionrequest_id,\nmessagedefinitionresponse_id);
+note right
+  **Query reference:** Flow 2
+  Links service to:
+  • Adapter implementation
+  • Request message format
+  • Response message format
+  • Fault message format
+end note
+
+:8. INSERT INTO **channeldefinition**\n(servicedefinition_id,\nadapterendpoint_id,\nfilterprovidingapplication_id,\nactive);
+note right
+  **Query reference:** Flow 3
+  14 active channels
+  Routes service to endpoint
+  with optional filtering
+end note
+
+repeat
+  :9. INSERT INTO **serviceusage**\n(servicedefinition_id,\napplication_id);
+  note right
+    **Query reference:** Flow 1
+    657 authorizations exist
+    Which consumer apps can
+    use which services
+  end note
+repeat while (More consumer apps?) is (yes)
+->no;
+
+|Testing|
+:10. Send test SOAP request;
+
+:Verify in **logservicerequest**;
+note right
+  **Query reference:** Flow 5
+  Logs every service call:
+  • Consumer application
+  • Service name
+  • Provider application
+  • Duration
+  • Success/failure
+end note
+
+if (Test successful?) then (yes)
+  |Documentation|
+  :Update ArchiMate model;
+  :Generate PlantUML diagrams;
+  stop
+else (no)
+  |Troubleshooting|
+  :Check **logroute** for\nrouting failures;
+  :Check **logaction** for\ndetailed steps;
+  :Check **logmessage** for\nactual payloads;
+  :Fix configuration;
+  ->retry;
+endif
+
+@enduml
+
+@startuml cgs-data-model-relationships
+' ============================================================================
+' CGS Data Model - Entity Relationship Overview
+' Based on: Query 8 (Hub Table Relationship Summary)
+' Purpose: Show database table relationships for technical understanding
+' ============================================================================
+
+title CGS Database Schema Relationships\nHub Tables and Connection Density (Query 8)
+
+!define HUB_TABLE #LightYellow
+!define CONFIG_TABLE #LightBlue
+!define LOG_TABLE #LightGreen
+!define MSG_TABLE #LightCoral
+
+entity "application" as app <<HUB_TABLE>> {
+  * id : numeric
+  --
+  name : varchar(50)
+  description : varchar(100)
+  --
+  **Rows:** 7
+  **Referenced by:** 657 serviceusage
+                    14 adapterendpoint
+                    14 channeldefinition
+}
+
+entity "servicedefinition" as svc <<HUB_TABLE>> {
+  * id : numeric
+  --
+  name : varchar
+  handling : varchar (SYN/ASYN)
+  status : varchar (ACTIVE)
+  --
+  **Rows:** 220 (218 active)
+  **Referenced by:** 657 serviceusage
+                     41 servicecomponentrelation
+                     14 channeldefinition
+}
+
+entity "messagedefinition" as msg <<HUB_TABLE>> {
+  * id : numeric
+  --
+  messagekey : varchar(50)
+  namespace : varchar
+  soapaction : varchar
+  validationactive : boolean
+  --
+  **Rows:** 32
+  **Referenced by:** 41 scr (req)
+                     41 scr (resp)
+                     41 scr (fault)
+                     14 channeldefinition
+                     5 transformationdefinition (×2)
+}
+
+entity "adapterendpoint" as endpoint <<HUB_TABLE>> {
+  * id : numeric
+  --
+  name : varchar(30)
+  adapterdefinition_id : FK
+  applicationalias_id : FK
+  --
+  **Rows:** 14
+  **Referenced by:** 14 channeldefinition
+                     491 endpointconfiguration
+}
+
+entity "adapterdefinition" as adapter <<HUB_TABLE>> {
+  * id : numeric
+  --
+  name : varchar(50)
+  adaptertype : varchar(10)
+  direction : varchar(10)
+  --
+  **Rows:** 7
+  **Referenced by:** 14 adapterendpoint
+                     41 servicecomponentrelation
+}
+
+entity "logmessage" as log_msg <<LOG_TABLE>> {
+  * id : numeric
+  --
+  messagekey : varchar
+  namespace : varchar
+  message : text
+  --
+  **Rows:** 66
+  **Referenced by:** 22 logservicerequest (×2)
+                     22 logroute (×3)
+}
+
+entity "serviceusage" as usage <<CONFIG_TABLE>> {
+  * id : numeric
+  --
+  * servicedefinition_id : FK
+  * application_id : FK
+  --
+  **Rows:** 657
+  **Purpose:** Authorization
+}
+
+entity "servicecomponentrelation" as scr <<CONFIG_TABLE>> {
+  * id : numeric
+  --
+  * servicedefinition_id : FK
+  * adapterdefinition_id : FK
+  messagedefinitionrequest_id : FK
+  messagedefinitionresponse_id : FK
+  messagedefinitionfault_id : FK
+  --
+  **Rows:** 41
+  **Purpose:** Implementation
+}
+
+entity "channeldefinition" as channel <<CONFIG_TABLE>> {
+  * id : numeric
+  --
+  * servicedefinition_id : FK
+  * adapterendpoint_id : FK
+  * filterprovidingapplication_id : FK
+  filtermessagedefinition_id : FK
+  requesttransformation_id : FK
+  responsetransformation_id : FK
+  active : boolean
+  --
+  **Rows:** 14 (active)
+  **Purpose:** Routing
+}
+
+entity "transformationdefinition" as trans <<MSG_TABLE>> {
+  * id : numeric
+  --
+  * messagedefinitionoriginal_id : FK
+  * messagedefinitiontarget_id : FK
+  * content_id : FK
+  --
+  **Rows:** 5
+  **Purpose:** Format conversion
+}
+
+entity "xsltcontent" as xslt <<MSG_TABLE>> {
+  * id : numeric
+  --
+  content : text
+  description : varchar
+  --
+  **Rows:** 1
+  **Purpose:** XSLT stylesheets
+}
+
+entity "endpointconfiguration" as config <<CONFIG_TABLE>> {
+  * id : numeric
+  --
+  * adapterendpoint_id : FK
+  endpointtype : varchar
+  url : varchar
+  username : varchar
+  protocol_settings : ...
+  --
+  **Rows:** 491
+  **Purpose:** Physical connection
+}
+
+entity "logservicerequest" as log_req <<LOG_TABLE>> {
+  * id : numeric
+  --
+  servicename : varchar
+  consumer : varchar
+  provider : varchar
+  request_id : FK → logmessage
+  response_id : FK → logmessage
+  --
+  **Rows:** 22 (recent)
+  **Purpose:** Request tracking
+}
+
+entity "logroute" as log_route <<LOG_TABLE>> {
+  * id : numeric
+  --
+  * logservicerequest_id : FK
+  adapterendpointname : varchar
+  transformedrequest_id : FK → logmessage
+  response_id : FK → logmessage
+  transformedresponse_id : FK → logmessage
+  --
+  **Rows:** 22
+  **Purpose:** Route tracking
+}
+
+' Core hub relationships (Query 1, 2, 3)
+app ||--o{ usage : "consumer"
+svc ||--o{ usage : "service"
+svc ||--o{ scr : "implementation"
+adapter ||--o{ scr : "adapter"
+msg ||--o{ scr : "req/resp/fault"
+
+svc ||--o{ channel : "routing"
+endpoint ||--o{ channel : "target"
+app ||--o{ channel : "provider filter"
+msg ||--o{ channel : "message filter"
+
+app ||--o{ endpoint : "deployed to"
+adapter ||--o{ endpoint : "instance of"
+
+endpoint ||--o{ config : "configuration"
+
+' Transformation relationships (Query 4)
+msg ||--o{ trans : "source format"
+msg ||--o{ trans : "target format"
+trans }o--|| xslt : "uses stylesheet"
+channel }o--o| trans : "req/resp transform"
+
+' Logging relationships (Query 5)
+log_req ||--o{ log_route : "contains hops"
+log_req }o--o| log_msg : "request/response"
+log_route }o--o| log_msg : "transformed msgs"
+
+note top of app
+  **APPLICATION (Hub)**
+  Connection Density: HIGH
+  7 applications serve as:
+  • Service consumers (657 usage)
+  • Service providers (14 channels)
+  • Endpoint hosts (14 endpoints)
+end note
+
+note top of svc
+  **SERVICEDEFINITION (Hub)**
+  Connection Density: HIGHEST
+  220 services are:
+  • Used by consumers (657 usage)
+  • Implemented by adapters (41 scr)
+  • Routed via channels (14 active)
+end note
+
+note top of msg
+  **MESSAGEDEFINITION (Hub)**
+  Connection Density: HIGH
+  32 message types used for:
+  • Service contracts (41 scr ×3)
+  • Message matching (runtime)
+  • Transformation (5 ×2)
+  • Channel filtering (14)
+end note
+
+note bottom of log_req
+  **LOGGING (Runtime)**
+  Captures actual flow execution:
+  • Which consumer called which service
+  • Which provider served the request
+  • How long it took
+  • Whether it succeeded
+  • Full message payloads
+  
+  **Query 5 analytics enable:**
+  • Performance monitoring
+  • Error diagnosis
+  • Usage patterns
+  • Compliance audit
+end note
+
+@enduml

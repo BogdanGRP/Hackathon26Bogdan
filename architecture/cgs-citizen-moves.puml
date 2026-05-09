@@ -1,0 +1,365 @@
+@startuml cgs-citizen-moves-flow
+' ═══════════════════════════════════════════════════════════════
+'  CITIZEN MOVES TO ANOTHER MUNICIPALITY — Complete CGS Flow
+'  Real data from igp_ontwikkel_cgs_owner database
+'  Service: StUFOntvangAsynchroonBG (29 channels, 17 providers)
+' ═══════════════════════════════════════════════════════════════
+
+title **What Happens in CGS When a Citizen Moves?**\nComplete flow from registration to all systems updated\n<size:10>Service: StUFOntvangAsynchroonBG | 29 channels | 17 provider apps | 26 authorized consumers</size>
+
+skinparam backgroundColor #FEFEFE
+skinparam defaultFontSize 11
+skinparam shadowing false
+skinparam roundcorner 10
+skinparam sequenceMessageAlign center
+skinparam sequenceParticipantPadding 8
+skinparam sequenceBoxBorderColor #90A4AE
+
+actor "Municipal\nEmployee" as employee #DCEDC8
+participant "**iBurgerzaken**\n//Civil Affairs App//" as ibz #C8E6C9
+
+box "CGS Service Bus — StUFOntvangAsynchroonBG" #E3F2FD
+  participant "**Authorization**\n//serviceusage//" as auth #BBDEFB
+  participant "**Message\nMatching**\n//messagedefinition//" as match #BBDEFB
+  participant "**Transformation\nEngine**\n//993 XSLT rules//" as xform #90CAF9
+  participant "**Router**\n//channeldefinition//" as router #90CAF9
+  participant "**Async Queue**\n//EXACTLYONCE//" as queue #FFF59D
+end box
+
+box "ABAP Providers (SAP)" #FFF3E0
+  participant "CBB\n//Taxes//" as cbb #FFE0B2
+  participant "CGA\n//Addresses//" as cga #FFE0B2
+  participant "CBR\n//Basic Reg.//" as cbr #FFE0B2
+  participant "CZA\n//Cases//" as cza #FFE0B2
+  participant "CIN\n//Collection//" as cin #FFE0B2
+  participant "CKD\n//Land Reg.//" as ckd #FFE0B2
+  participant "CMD\n//Resources//" as cmd #FFE0B2
+  participant "CMO\n//Social Supp.//" as cmo #FFE0B2
+end box
+
+box "Java Providers" #F3E5F5
+  participant "CMG\n//Broker//" as cmg #E1BEE7
+  participant "CMM\n//Magazine//" as cmm #E1BEE7
+end box
+
+box "Other Providers" #ECEFF1
+  participant "CWIZ\n//Social Affairs//" as cwiz #CFD8DC
+  participant "GEOTAX\n//Geo-Tax//" as geotax #CFD8DC
+  participant "4WOZ\n//Valuation//" as woz4 #CFD8DC
+  participant "WebNext\n//Web Portal//" as webnext #CFD8DC
+  participant "Legacy\n//HRS, OIS,\nBGB, WIS//" as legacy #CFD8DC
+  participant "TOG\n//TOG NL//" as tog #CFD8DC
+end box
+
+== **PHASE 1: The citizen visits the municipality** ==
+
+employee -> ibz : Registers that citizen\nJan de Vries (BSN 123456789)\nmoved from Kerkstraat 12\nto Hoofdweg 45
+
+note over ibz
+  iBurgerzaken updates BRP
+  (Basisregistratie Personen)
+  and needs to notify all
+  other systems about the
+  address change.
+end note
+
+== **PHASE 2: iBurgerzaken sends notification to CGS** ==
+
+ibz -> auth : **SOAP Request** to:\nhttps://[server]:8443/CGS/StUF/services/BGAsynchroon\n\n**Message:** kennisgevingsBericht\n**Namespace:** http://www.egem.nl/StUF/sector/bg/0204\n**Entity type:** NPS (Natuurlijk Persoon)\n**Contains:** old address + new address + BSN
+note right of auth
+  **Message type = npsLk01**
+  (Natuurlijk Persoon Lk01 = 
+  Person change notification)
+  
+  StUF-BG format 0204
+  Async handling
+end note
+
+== **PHASE 3: CGS Authorization Check** ==
+
+auth -> auth : SELECT * FROM serviceusage\nWHERE application_id = <iBurgerzaken>\nAND servicedefinition_id = <StUFOntvangAsynchroonBG>
+note right of auth
+  **26 apps authorized** for this service:
+  iBurgerzaken, CBB, CGA, CBR, CZA,
+  CIN, CKD, CMD, CMG, CMO, CWIZ,
+  FrontOffice, SquitXO, ZGS_SSL...
+  
+  ✅ iBurgerzaken is authorized
+end note
+
+auth --> ibz : **Bv04Bericht** (StUF 0301)\n//"Message received, will be processed"//
+note left of ibz
+  **Immediate confirmation!**
+  iBurgerzaken can continue
+  working. CGS handles
+  delivery in background.
+end note
+
+== **PHASE 4: Message Matching** ==
+
+auth -> match : Forward kennisgevingsBericht
+match -> match : Match by namespace + messagekey:\n\n**namespace** = ""http://www.egem.nl/StUF/sector/bg/0204""\n**messagekey** = ""kennisgevingsBericht/stuurgegevens/entiteittype""\n**entity** = NPS\n\n→ Matched to: **BG 0204 kennisgevingsBericht**
+
+note right of match
+  **40 possible BG message types:**
+  npsLk01 (person), aoaLk01 (address),
+  vbtLk01 (residence), oprLk01 (public space),
+  pndLk01 (building), wplLk01 (city),
+  gemLk01 (municipality), ...
+  
+  For a move: **npsLk01** (person change)
+  with address data in the payload
+end note
+
+== **PHASE 5: Transformation Check** ==
+
+match -> xform : Message matched, check format needs
+
+xform -> xform : Check all 29 channels:\nDo any providers need a different format?
+
+note right of xform
+  **Available transformations for this message:**
+  
+  • **BG 0204 → BG 0210** (Centric variant)
+    "Upgrade van BG 2.04 naar BG 2.10"
+    For apps that speak the Centric dialect
+    
+  • **BG 0210 → BG 0204** (downgrade)
+    "Downgrade van BG 2.10 naar BG 2.04"
+    For legacy systems
+    
+  • **BG 0204 → BG 0310** (new standard)
+    For modern StUF-BG applications
+    
+  In this environment most channels
+  receive **0204 natively** — no
+  transformation needed for most.
+  
+  **Bv04 → Bv03**: response transformation
+  applied when channel expects Bv03
+  confirmation instead of Bv04.
+end note
+
+== **PHASE 6: Dynamic Routing — The Fan-out** ==
+
+xform -> router : Message ready (original + transformed copies)
+
+router -> router : SELECT * FROM channeldefinition\nWHERE servicedefinition_id = <StUFOntvangAsynchroonBG>\nAND active = true\n\n→ **29 active channels found!**
+
+note over router
+  **Channel selection criteria (AND logic):**
+  1. filterprovidingapplication_id → which provider app?
+  2. filtermessagedefinition_id → only specific message types?
+  3. active = true → channel enabled?
+  
+  **Result: message is copied to ALL 29 channels**
+  Each channel targets a specific provider + endpoint
+end note
+
+== **PHASE 7: Queue & Delivery — Each Provider Gets Its Copy** ==
+
+router -> queue : Place 29 copies in sending queue\n(QoS = EXACTLYONCE = guaranteed delivery)
+note right of queue
+  **Check applicationopeningperiod:**
+  Is each target app currently "open"?
+  • Open → deliver now
+  • Closed → hold until opening
+end note
+
+|||
+
+queue -[#E65100,bold]> cbb : **Channel → CBB**\nEndpoint: CBB\nProtocol: **ABAP** (SAP JCo)\nFormat: StUF BG 0204\nNo transformation needed
+queue -[#E65100,bold]> cga : **Channel → CGA**\nEndpoint: CGA\nProtocol: **ABAP**\nFormat: StUF BG 0204
+queue -[#E65100,bold]> cbr : **Channel → CBR**\nEndpoints: CBR + CBRA\nProtocol: **ABAP** (2 channels)
+queue -[#E65100,bold]> cza : **Channel → CZA**\nEndpoint: CZA\nProtocol: **ABAP**
+queue -[#E65100]> cin : **Channel → CIN**\nProtocol: **ABAP**
+queue -[#E65100]> ckd : **Channel → CKD**\nProtocol: **ABAP**
+queue -[#E65100]> cmd : **Channel → CMD**\nProtocol: **ABAP**
+queue -[#E65100]> cmo : **Channel → CMO**\nProtocol: **ABAP**
+queue -[#6A1B9A,bold]> cmg : **Channels → CMG** (4 channels)\nEndpoint: CMG\nProtocol: **Java** (internal JVM)
+queue -[#6A1B9A]> cmm : **Channels → CMM** (4 channels)\nEndpoints: CMMSTUFASYN\nProtocol: **Java**
+queue -[#546E7A]> cwiz : **Channel → CWIZ**\nEndpoint: CSAMUNIFACE\nProtocol: **UNIFACE** (via STUNNEL)
+queue -[#2E7D32]> geotax : **Channel → GEOTAX**\nEndpoint: GEOTAX\nProtocol: **WEBSERVICE** (SOAP)
+queue -[#2E7D32]> woz4 : **Channel → 4WOZ**\nEndpoint: 4WOZ\nProtocol: **WEBSERVICE**
+queue -[#0D47A1]> webnext : **Channel → WebNext**\nEndpoint: (HTTP)\nProtocol: **HTTP**
+queue -[#2E7D32]> legacy : **Channels → Legacy** (4 channels)\nEndpoints: HRSSTUFASYN,\nOISSTUFASYN, BGBSTUFASYN,\nWISSTUFASYN\nProtocol: **WEBSERVICE**
+queue -[#2E7D32]> tog : **Channel → TOG**\nProtocol: **WEBSERVICE**
+
+== **PHASE 8: Each System Processes the Move** ==
+
+note over cbb
+  **CBB (Taxes)**
+  Recalculates tax
+  obligation based
+  on new address.
+  New municipality →
+  new tax rates.
+end note
+
+note over cga
+  **CGA (Addresses)**
+  Updates address
+  registration.
+  Links person to
+  new address object.
+end note
+
+note over cbr
+  **CBR (Basic Reg.)**
+  Updates person's
+  official registration
+  record with new
+  residential address.
+end note
+
+note over cmg
+  **CMG (Broker)**
+  Updates the central
+  data store (magazine).
+  Makes new address
+  available for all
+  future queries.
+end note
+
+note over cwiz
+  **CWIZ (Social)**
+  Checks if person
+  has active social
+  benefits that need
+  address update.
+end note
+
+note over geotax
+  **GEOTAX**
+  Updates geo-spatial
+  tax mapping for
+  the new address.
+end note
+
+== **PHASE 9: Follow-up — Other Apps Query the New Address** ==
+
+note over auth, queue
+  **After the async fan-out, other services trigger:**
+  
+  When apps need the person's **current** data, they call **StUFBeantwoordVraagBG** (synchronous):
+  
+  • REQUEST: vraagBericht (StUF BG 0204) — "Give me the data of person X"
+  • CGS routes to: **CGS** (Java) → **CML** (Java) → **CMM** (Java Magazine)
+  • RESPONSE: synchroonAntwoordBericht — new address included
+  
+  This way, the Portal, FrontOffice, or any third-party app
+  that queries citizen data will automatically get the new address.
+end note
+
+@enduml
+
+
+@startuml cgs-citizen-moves-overview
+' ═══════════════════════════════════════════════════════════════
+'  CITIZEN MOVES — Simplified Overview
+'  Bird's eye view of all systems affected
+' ═══════════════════════════════════════════════════════════════
+
+title **Citizen Moves — All Affected Systems at a Glance**\n//One address change triggers updates in 17 applications across 5 protocols//
+
+skinparam backgroundColor #FEFEFE
+skinparam defaultFontSize 11
+skinparam shadowing false
+skinparam roundcorner 15
+skinparam componentStyle rectangle
+skinparam nodesep 30
+skinparam ranksep 25
+
+' === THE EVENT ===
+actor "Citizen" as citizen
+component "**iBurgerzaken**\nRegisters the move\nat the municipality" as ibz #C8E6C9
+
+citizen -right-> ibz : "I moved from\nKerkstraat 12\nto Hoofdweg 45"
+
+' === CGS ===
+package "**CGS Service Bus**" as cgs #E3F2FD {
+  component "**StUFOntvangAsynchroonBG**\n\n//Service: Async BG Notifications//\n//Handling: ASYN / EXACTLYONCE//\n//29 routing channels//\n\n**Message in:** kennisgevingsBericht\n  namespace: StUF/sector/bg/0204\n  entity: NPS (person change)\n\n**Response:** Bv04Bericht (immediate)\n**Fault:** Fo03Bericht (on error)" as svc #BBDEFB
+}
+
+ibz -down-> svc : **SOAP** via ABAP adapter\nnpsLk01 (person notification)\nStUF-BG 0204 format
+
+' === PROVIDERS GROUPED BY PROTOCOL ===
+
+package "**ABAP / SAP JCo** — 8 apps, 10 channels" as abap_grp #FFF3E0 {
+  component "**CBB** //Taxes//\nRecalculate tax for new address" as p_cbb #FFE0B2
+  component "**CGA** //Addresses//\nUpdate address registration" as p_cga #FFE0B2
+  component "**CBR** //Basic Reg.//\nUpdate person record (2 ch)" as p_cbr #FFE0B2
+  component "**CZA** //Cases//\nUpdate active case addresses" as p_cza #FFE0B2
+  component "**CIN** //Collection//\nUpdate collection records" as p_cin #FFE0B2
+  component "**CKD** //Land Registry//\nUpdate cadastral links" as p_ckd #FFE0B2
+  component "**CMD** //Resources//\nUpdate resource allocation" as p_cmd #FFE0B2
+  component "**CMO** //Social Support//\nUpdate social care records" as p_cmo #FFE0B2
+}
+
+package "**Java** (internal JVM) — 2 apps, 8 channels" as java_grp #F3E5F5 {
+  component "**CMG** //Broker Data// (4 ch)\nUpdate central data store\nFuture queries return new address" as p_cmg #E1BEE7
+  component "**CMM** //Magazine// (4 ch)\nUpdate data magazine\nSync with CMG" as p_cmm #E1BEE7
+}
+
+package "**UNIFACE** — 1 app, 1 channel" as uni_grp #FFECB3 {
+  component "**CWIZ** //Social Affairs//\nUpdate benefits & social records\nvia STUNNEL proxy" as p_cwiz #FFE082
+}
+
+package "**WEBSERVICE / SOAP** — 5 apps, 7 channels" as ws_grp #E8F5E9 {
+  component "**GEOTAX** //Geo-Tax//\nUpdate spatial tax map" as p_geotax #C8E6C9
+  component "**4WOZ** //Valuation//\nUpdate property valuation links" as p_4woz #C8E6C9
+  component "**TOG** //TOG Nederland//\nUpdate external registry" as p_tog #C8E6C9
+  component "**Legacy** //HRS, OIS, BGB, WIS// (4 ch)\nUpdate legacy PinkRoccade systems" as p_legacy #C8E6C9
+}
+
+package "**HTTP** — 1 app, 1 channel" as http_grp #FCE4EC {
+  component "**WebNext** //Web Portal//\nUpdate online citizen portal\nNew address visible to citizen" as p_webnext #F8BBD0
+}
+
+' === DELIVERY CONNECTIONS ===
+svc -[#E65100,bold]-> p_cbb
+svc -[#E65100,bold]-> p_cga
+svc -[#E65100]-> p_cbr
+svc -[#E65100]-> p_cza
+svc -[#E65100]-> p_cin
+svc -[#E65100]-> p_ckd
+svc -[#E65100]-> p_cmd
+svc -[#E65100]-> p_cmo
+
+svc -[#6A1B9A,bold]-> p_cmg
+svc -[#6A1B9A]-> p_cmm
+
+svc -[#FF8F00,bold]-> p_cwiz
+
+svc -[#2E7D32]-> p_geotax
+svc -[#2E7D32]-> p_4woz
+svc -[#2E7D32]-> p_tog
+svc -[#2E7D32]-> p_legacy
+
+svc -[#AD1457]-> p_webnext
+
+' === FOLLOW-UP SYNC QUERY ===
+package "**Follow-up: Sync Queries**\n(StUFBeantwoordVraagBG)" as sync_box #FFFDE7 {
+  component "Any app can now **ask** for\ncitizen data and will get\nthe **new address** back.\n\n//vraagBericht → CGS → CMM//\n//→ synchroonAntwoordBericht//" as sync_note #FFF9C4
+}
+
+p_cmm .down.> sync_note : CMM now has\nnew address
+p_cmg .down.> sync_note : CMG provides\nquery results
+
+note bottom of svc
+  **Transformation Engine (if needed):**
+  
+  Most channels receive StUF BG **0204** natively.
+  If a channel needs a different format:
+  
+  • **BG 0204 → 0210**: "Upgrade" to Centric variant
+  • **BG 0204 → 0310**: "Upgrade" to new standard
+  • **BG 0210 → 0204**: "Downgrade" from Centric
+  • **Bv04 → Bv03**: Transform response confirmation
+  
+  993 XSLT stylesheets available for all
+  StUF entity types (person, address,
+  building, municipality, etc.)
+end note
+
+@enduml

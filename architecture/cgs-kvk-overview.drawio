@@ -1,0 +1,224 @@
+<mxfile host="65bd71144e">
+  <diagram id="kvk-mindmap" name="KVK Company Changes — Mind Map">
+    <mxGraphModel dx="1800" dy="1400" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2400" pageHeight="1500" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <!-- ══════ TITLE ══════ -->
+        <mxCell id="title" value="&lt;b&gt;KVK / Company Changes — All Services &amp; Message Flows&lt;/b&gt;&lt;br&gt;&lt;i&gt;11 services · 3 signal types · 5 query types · 3 storage operations&lt;/i&gt;" style="text;html=1;align=center;verticalAlign=middle;strokeColor=none;fillColor=none;fontSize=16;" parent="1" vertex="1">
+          <mxGeometry x="650" y="10" width="700" height="50" as="geometry"/>
+        </mxCell>
+
+        <!-- ══════ KVK — top center ══════ -->
+        <mxCell id="kvk" value="&lt;b&gt;🏛️ KVK&lt;/b&gt;&lt;br&gt;&lt;i&gt;Kamer van Koophandel&lt;/i&gt;&lt;br&gt;National Chamber of Commerce" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F0F4C3;strokeColor=#827717;fontSize=12;verticalAlign=middle;shadow=1;strokeWidth=2;" parent="1" vertex="1">
+          <mxGeometry x="890" y="80" width="220" height="90" as="geometry"/>
+        </mxCell>
+
+        <!-- ══════ CML — center hub ══════ -->
+        <mxCell id="cml" value="&lt;b&gt;🔄 CML&lt;/b&gt;&lt;br&gt;&lt;i&gt;Broker National&lt;/i&gt;&lt;br&gt;Orchestrates entire KVK flow" style="ellipse;whiteSpace=wrap;html=1;fillColor=#CE93D8;strokeColor=#6A1B9A;fontSize=14;fontStyle=1;verticalAlign=middle;shadow=1;strokeWidth=3;" parent="1" vertex="1">
+          <mxGeometry x="880" y="490" width="240" height="120" as="geometry"/>
+        </mxCell>
+
+        <!-- ══════ STEP 1: KVK Signals — upper left ══════ -->
+        <mxCell id="step1_group" value="&lt;b&gt;📡 Step 1: KVK Signals&lt;/b&gt;&lt;br&gt;&amp;quot;Something changed at a company&amp;quot;" style="swimlane;startSize=40;fillColor=#FFF3E0;strokeColor=#E65100;rounded=1;fontSize=11;html=1;collapsible=0;swimlaneLine=0;" parent="1" vertex="1">
+          <mxGeometry x="30" y="80" width="560" height="240" as="geometry"/>
+        </mxCell>
+        <mxCell id="svc_mutatie" value="&lt;b&gt;KVKMutatieService&lt;/b&gt; [ASYNC]&lt;br&gt;&lt;br&gt;Messages IN (from KVK):&lt;br&gt;• SignaalNieuweInschrijving&lt;br&gt;• SignaalGewijzigdeInschrijving&lt;br&gt;• SignaalGewijzigdeVestiging&lt;br&gt;&lt;br&gt;Response: Bv03Bericht&lt;br&gt;Consumers: KVK" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE0B2;strokeColor=#E65100;fontSize=10;verticalAlign=top;align=left;spacingLeft=5;" parent="step1_group" vertex="1">
+          <mxGeometry x="15" y="55" width="255" height="170" as="geometry"/>
+        </mxCell>
+        <mxCell id="svc_event" value="&lt;b&gt;KVKEventService&lt;/b&gt; [ASYNC]&lt;br&gt;&lt;br&gt;Same 3 signal types&lt;br&gt;(internal event processing)&lt;br&gt;&lt;br&gt;Response: Bv03Bericht&lt;br&gt;Consumers: KVK, CML, CIR_NODE" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE0B2;strokeColor=#E65100;fontSize=10;verticalAlign=top;align=left;spacingLeft=5;" parent="step1_group" vertex="1">
+          <mxGeometry x="290" y="55" width="255" height="170" as="geometry"/>
+        </mxCell>
+
+        <!-- ══════ STEP 2: Fetch — upper right ══════ -->
+        <mxCell id="step2_group" value="&lt;b&gt;🔍 Step 2: Fetch Full Data from KVK&lt;/b&gt;&lt;br&gt;&amp;quot;Give me the complete company record&amp;quot;" style="swimlane;startSize=40;fillColor=#E3F2FD;strokeColor=#1565C0;rounded=1;fontSize=11;html=1;collapsible=0;swimlaneLine=0;" parent="1" vertex="1">
+          <mxGeometry x="1400" y="80" width="810" height="240" as="geometry"/>
+        </mxCell>
+        <mxCell id="svc_hr" value="&lt;b&gt;StUFBeantwoordVraagHR&lt;/b&gt; [SYN]&lt;br&gt;&lt;br&gt;ophalenInschrijvingRequest&lt;br&gt;→ ophalenInschrijvingResponse&lt;br&gt;ophalenVestigingRequest&lt;br&gt;→ ophalenVestigingResponse&lt;br&gt;&lt;br&gt;ns: kvk.nl/StUF/sector/hr/kvk0300&lt;br&gt;Consumers: CIR, CIR_NODE, CML&lt;br&gt;Provider: KVK (4 WS adapters)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#BBDEFB;strokeColor=#1565C0;fontSize=10;verticalAlign=top;align=left;spacingLeft=5;" parent="step2_group" vertex="1">
+          <mxGeometry x="15" y="55" width="250" height="170" as="geometry"/>
+        </mxCell>
+        <mxCell id="svc_nhr" value="&lt;b&gt;StUFBeantwoordVraagNHR&lt;/b&gt; [SYN]&lt;br&gt;&lt;br&gt;vraagBericht (nhr format)&lt;br&gt;→ synchroonAntwoordBericht&lt;br&gt;&lt;br&gt;Consumers: CIR, CIR_NODE, CML&lt;br&gt;Provider: NHR (inactive channels)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#BBDEFB;strokeColor=#1565C0;fontSize=10;verticalAlign=top;align=left;spacingLeft=5;" parent="step2_group" vertex="1">
+          <mxGeometry x="280" y="55" width="250" height="170" as="geometry"/>
+        </mxCell>
+        <mxCell id="svc_nhr_plus" value="&lt;b&gt;StUFBeantwoordVraagNHRPLUS&lt;/b&gt; [SYN]&lt;br&gt;&lt;br&gt;Extended NHR data query&lt;br&gt;&lt;br&gt;Consumers: CIR_NODE, CML" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#BBDEFB;strokeColor=#1565C0;fontSize=10;verticalAlign=top;align=left;spacingLeft=5;" parent="step2_group" vertex="1">
+          <mxGeometry x="545" y="55" width="250" height="170" as="geometry"/>
+        </mxCell>
+
+        <!-- ══════ STEP 3: Store — lower left ══════ -->
+        <mxCell id="step3_group" value="&lt;b&gt;💾 Step 3: Store in Municipal Systems&lt;/b&gt;&lt;br&gt;&amp;quot;Save company data locally&amp;quot;" style="swimlane;startSize=40;fillColor=#E8F5E9;strokeColor=#2E7D32;rounded=1;fontSize=11;html=1;collapsible=0;swimlaneLine=0;" parent="1" vertex="1">
+          <mxGeometry x="30" y="740" width="1080" height="240" as="geometry"/>
+        </mxCell>
+        <mxCell id="svc_verwerk" value="&lt;b&gt;VerwerkNHRBericht&lt;/b&gt; [SYN]&lt;br&gt;&lt;br&gt;Process NHR record&lt;br&gt;ns: kvk.nl/StUF/sector/hr/0300&lt;br&gt;&lt;br&gt;Consumers: CML, KVK&lt;br&gt;Provider: CIR (Java)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C8E6C9;strokeColor=#2E7D32;fontSize=10;verticalAlign=top;align=left;spacingLeft=5;" parent="step3_group" vertex="1">
+          <mxGeometry x="15" y="55" width="250" height="170" as="geometry"/>
+        </mxCell>
+        <mxCell id="svc_nhr2bg" value="&lt;b&gt;OpslaanNHR2BGService&lt;/b&gt; [SYN]&lt;br&gt;&lt;br&gt;genereerProductRespons&lt;br&gt;→ Convert NHR → StUF-BG&lt;br&gt;(company owners as persons)&lt;br&gt;&lt;br&gt;Consumers: CIR_NODE, CML&lt;br&gt;Provider: (no active channel)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C8E6C9;strokeColor=#2E7D32;fontSize=10;verticalAlign=top;align=left;spacingLeft=5;" parent="step3_group" vertex="1">
+          <mxGeometry x="280" y="55" width="250" height="170" as="geometry"/>
+        </mxCell>
+        <mxCell id="svc_nhrplus" value="&lt;b&gt;OpslaanNHRPlusService&lt;/b&gt; [SYN]&lt;br&gt;&lt;br&gt;genereerProductRespons&lt;br&gt;Store extended NHR data&lt;br&gt;&lt;br&gt;Consumers: CIR_NODE, CML" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C8E6C9;strokeColor=#2E7D32;fontSize=10;verticalAlign=top;align=left;spacingLeft=5;" parent="step3_group" vertex="1">
+          <mxGeometry x="545" y="55" width="250" height="170" as="geometry"/>
+        </mxCell>
+        <mxCell id="svc_maatsch" value="&lt;b&gt;OpslaanMaatschappelijke-&lt;br&gt;ActiviteitService&lt;/b&gt; [SYN]&lt;br&gt;&lt;br&gt;genereerProductRespons&lt;br&gt;Store business activity&lt;br&gt;(legal entity records)&lt;br&gt;&lt;br&gt;Consumers: CIR_NODE, CML, ZGS_SSL&lt;br&gt;Provider: CIR (Java)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#C8E6C9;strokeColor=#2E7D32;fontSize=10;verticalAlign=top;align=left;spacingLeft=5;" parent="step3_group" vertex="1">
+          <mxGeometry x="810" y="55" width="250" height="170" as="geometry"/>
+        </mxCell>
+
+        <!-- ══════ STEP 4: Data Quality — lower right ══════ -->
+        <mxCell id="step4_group" value="&lt;b&gt;🧹 Step 4: Data Quality&lt;/b&gt;&lt;br&gt;&amp;quot;Keep company data clean&amp;quot;" style="swimlane;startSize=40;fillColor=#F3E5F5;strokeColor=#6A1B9A;rounded=1;fontSize=11;html=1;collapsible=0;swimlaneLine=0;" parent="1" vertex="1">
+          <mxGeometry x="1350" y="740" width="560" height="240" as="geometry"/>
+        </mxCell>
+        <mxCell id="svc_opschonen" value="&lt;b&gt;OpschonenBedrijvenService&lt;/b&gt; [SYN]&lt;br&gt;&lt;br&gt;opschonenBedrijven&lt;br&gt;→ Bv04Bericht&lt;br&gt;ns: civision.nl/CGS/clean&lt;br&gt;&lt;br&gt;Consumer: CML&lt;br&gt;Provider: CIR (Java)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1BEE7;strokeColor=#6A1B9A;fontSize=10;verticalAlign=top;align=left;spacingLeft=5;" parent="step4_group" vertex="1">
+          <mxGeometry x="15" y="55" width="255" height="170" as="geometry"/>
+        </mxCell>
+        <mxCell id="svc_kwaliteit" value="&lt;b&gt;KwaliteitBedrijvenService&lt;/b&gt; [SYN]&lt;br&gt;&lt;br&gt;kwaliteitBedrijvenRequest&lt;br&gt;→ kwaliteitBedrijvenResponse&lt;br&gt;ns: makelaarsuite.nl/kwaliteitBedrijven&lt;br&gt;&lt;br&gt;Consumer: CML&lt;br&gt;Provider: CMG (Java)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1BEE7;strokeColor=#6A1B9A;fontSize=10;verticalAlign=top;align=left;spacingLeft=5;" parent="step4_group" vertex="1">
+          <mxGeometry x="290" y="55" width="255" height="170" as="geometry"/>
+        </mxCell>
+
+        <!-- ══════ CIR — bottom center ══════ -->
+        <mxCell id="cir" value="&lt;b&gt;🗄️ CIR / CIR_NODE&lt;/b&gt;&lt;br&gt;&lt;i&gt;Company Registry&lt;/i&gt;&lt;br&gt;Stores &amp; serves company data" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF9C4;strokeColor=#F9A825;fontSize=12;verticalAlign=middle;shadow=1;strokeWidth=2;" parent="1" vertex="1">
+          <mxGeometry x="700" y="1080" width="220" height="90" as="geometry"/>
+        </mxCell>
+
+        <!-- ══════ CMG — bottom right ══════ -->
+        <mxCell id="cmg" value="&lt;b&gt;📊 CMG&lt;/b&gt;&lt;br&gt;&lt;i&gt;Broker Data&lt;/i&gt;&lt;br&gt;Data distribution &amp; quality" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1BEE7;strokeColor=#6A1B9A;fontSize=12;verticalAlign=middle;shadow=1;strokeWidth=2;" parent="1" vertex="1">
+          <mxGeometry x="1500" y="1080" width="220" height="90" as="geometry"/>
+        </mxCell>
+
+        <!-- ══════ LEGEND — bottom left ══════ -->
+        <mxCell id="legend" value="&lt;b&gt;The complete KVK flow in 4 steps:&lt;/b&gt;&lt;br&gt;&lt;br&gt;1. &lt;b style=&quot;color:#E65100&quot;&gt;Signal&lt;/b&gt; — KVK tells CGS &amp;quot;a company changed&amp;quot;&lt;br&gt;2. &lt;b style=&quot;color:#1565C0&quot;&gt;Fetch&lt;/b&gt; — CML queries KVK for full company data&lt;br&gt;3. &lt;b style=&quot;color:#2E7D32&quot;&gt;Store&lt;/b&gt; — CML saves data in municipal systems&lt;br&gt;4. &lt;b style=&quot;color:#6A1B9A&quot;&gt;Maintain&lt;/b&gt; — CML keeps data clean over time&lt;br&gt;&lt;br&gt;&lt;b&gt;Key namespace:&lt;/b&gt; kvk.nl/StUF/sector/hr/kvk0300" style="text;html=1;align=left;verticalAlign=top;rounded=1;fillColor=#F5F5F5;strokeColor=#BDBDBD;fontSize=10;spacingLeft=10;spacingTop=8;spacingRight=10;" parent="1" vertex="1">
+          <mxGeometry x="30" y="1080" width="320" height="180" as="geometry"/>
+        </mxCell>
+
+        <!-- ══════════════════════════════════════════ -->
+        <!-- EDGES — all curved, radiating from CML    -->
+        <!-- No crossing lines!                        -->
+        <!-- ══════════════════════════════════════════ -->
+
+        <!-- ── ORANGE: KVK → Step 1 Signals ── -->
+        <mxCell id="e1" style="curved=1;strokeColor=#E65100;strokeWidth=2;rounded=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;" parent="1" source="kvk" target="svc_mutatie" edge="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e1_label" value="3 signal types" style="edgeLabel;html=1;fontSize=9;fontColor=#E65100;" parent="e1" vertex="1" connectable="0">
+          <mxGeometry relative="1" as="geometry"><mxPoint as="offset"/></mxGeometry>
+        </mxCell>
+
+        <mxCell id="e3" style="curved=1;strokeColor=#E65100;strokeWidth=1;rounded=1;exitX=0;exitY=0.8;exitDx=0;exitDy=0;" parent="1" source="kvk" target="svc_event" edge="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- ── ORANGE: Step 1 → CML (triggers) ── -->
+        <mxCell id="e2" style="curved=1;strokeColor=#E65100;strokeWidth=2;rounded=1;" parent="1" source="svc_mutatie" target="cml" edge="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e2_label" value="triggers fetch" style="edgeLabel;html=1;fontSize=9;fontColor=#E65100;" parent="e2" vertex="1" connectable="0">
+          <mxGeometry relative="1" as="geometry"><mxPoint as="offset"/></mxGeometry>
+        </mxCell>
+
+        <mxCell id="e4" style="curved=1;strokeColor=#E65100;strokeWidth=1;rounded=1;dashed=1;" parent="1" source="cml" target="svc_event" edge="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e4_label" value="Java internal" style="edgeLabel;html=1;fontSize=9;fontColor=#E65100;" parent="e4" vertex="1" connectable="0">
+          <mxGeometry relative="1" as="geometry"><mxPoint as="offset"/></mxGeometry>
+        </mxCell>
+
+        <!-- ── BLUE: CML → Step 2 Fetch ── -->
+        <mxCell id="e6" style="curved=1;strokeColor=#1565C0;strokeWidth=2;rounded=1;" parent="1" source="cml" target="svc_hr" edge="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e6_label" value="fetch full data" style="edgeLabel;html=1;fontSize=9;fontColor=#1565C0;" parent="e6" vertex="1" connectable="0">
+          <mxGeometry relative="1" as="geometry"><mxPoint as="offset"/></mxGeometry>
+        </mxCell>
+
+        <mxCell id="e8" style="curved=1;strokeColor=#1565C0;strokeWidth=1;rounded=1;" parent="1" source="cml" target="svc_nhr" edge="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e9" style="curved=1;strokeColor=#1565C0;strokeWidth=1;rounded=1;" parent="1" source="cml" target="svc_nhr_plus" edge="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <!-- ── BLUE: Step 2 HR → KVK (query out) ── -->
+        <mxCell id="e7" style="curved=1;strokeColor=#1565C0;strokeWidth=2;rounded=1;dashed=0;" parent="1" source="svc_hr" target="kvk" edge="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e7_label" value="WEBSERVICE (4 adapters)" style="edgeLabel;html=1;fontSize=9;fontColor=#1565C0;" parent="e7" vertex="1" connectable="0">
+          <mxGeometry relative="1" as="geometry"><mxPoint as="offset"/></mxGeometry>
+        </mxCell>
+
+        <!-- ── GREEN: CML → Step 3 Store ── -->
+        <mxCell id="e11" style="curved=1;strokeColor=#2E7D32;strokeWidth=2;rounded=1;" parent="1" source="cml" target="svc_verwerk" edge="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e11_label" value="store NHR" style="edgeLabel;html=1;fontSize=9;fontColor=#2E7D32;" parent="e11" vertex="1" connectable="0">
+          <mxGeometry relative="1" as="geometry"><mxPoint as="offset"/></mxGeometry>
+        </mxCell>
+
+        <mxCell id="e13" style="curved=1;strokeColor=#2E7D32;strokeWidth=1;rounded=1;" parent="1" source="cml" target="svc_nhr2bg" edge="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e13_label" value="convert NHR→BG" style="edgeLabel;html=1;fontSize=9;fontColor=#2E7D32;" parent="e13" vertex="1" connectable="0">
+          <mxGeometry relative="1" as="geometry"><mxPoint as="offset"/></mxGeometry>
+        </mxCell>
+
+        <mxCell id="e14" style="curved=1;strokeColor=#2E7D32;strokeWidth=1;rounded=1;" parent="1" source="cml" target="svc_nhrplus" edge="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e14_label" value="store extended" style="edgeLabel;html=1;fontSize=9;fontColor=#2E7D32;" parent="e14" vertex="1" connectable="0">
+          <mxGeometry relative="1" as="geometry"><mxPoint as="offset"/></mxGeometry>
+        </mxCell>
+
+        <mxCell id="e15" style="curved=1;strokeColor=#2E7D32;strokeWidth=1;rounded=1;" parent="1" source="cml" target="svc_maatsch" edge="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e15_label" value="store activities" style="edgeLabel;html=1;fontSize=9;fontColor=#2E7D32;" parent="e15" vertex="1" connectable="0">
+          <mxGeometry relative="1" as="geometry"><mxPoint as="offset"/></mxGeometry>
+        </mxCell>
+
+        <!-- ── GREEN: Step 3 → CIR ── -->
+        <mxCell id="e12" style="curved=1;strokeColor=#2E7D32;strokeWidth=1;rounded=1;" parent="1" source="svc_verwerk" target="cir" edge="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e12_label" value="Java → CIR" style="edgeLabel;html=1;fontSize=9;fontColor=#2E7D32;" parent="e12" vertex="1" connectable="0">
+          <mxGeometry relative="1" as="geometry"><mxPoint as="offset"/></mxGeometry>
+        </mxCell>
+
+        <mxCell id="e16" style="curved=1;strokeColor=#2E7D32;strokeWidth=1;rounded=1;" parent="1" source="svc_maatsch" target="cir" edge="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e16_label" value="Java → CIR" style="edgeLabel;html=1;fontSize=9;fontColor=#2E7D32;" parent="e16" vertex="1" connectable="0">
+          <mxGeometry relative="1" as="geometry"><mxPoint as="offset"/></mxGeometry>
+        </mxCell>
+
+        <!-- ── PURPLE: CML → Step 4 Maintain ── -->
+        <mxCell id="e19" style="curved=1;strokeColor=#6A1B9A;strokeWidth=1;rounded=1;" parent="1" source="cml" target="svc_opschonen" edge="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e19_label" value="clean up" style="edgeLabel;html=1;fontSize=9;fontColor=#6A1B9A;" parent="e19" vertex="1" connectable="0">
+          <mxGeometry relative="1" as="geometry"><mxPoint as="offset"/></mxGeometry>
+        </mxCell>
+
+        <mxCell id="e17" style="curved=1;strokeColor=#6A1B9A;strokeWidth=1;rounded=1;" parent="1" source="cml" target="svc_kwaliteit" edge="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e17_label" value="check quality" style="edgeLabel;html=1;fontSize=9;fontColor=#6A1B9A;" parent="e17" vertex="1" connectable="0">
+          <mxGeometry relative="1" as="geometry"><mxPoint as="offset"/></mxGeometry>
+        </mxCell>
+
+        <!-- ── PURPLE: Step 4 → CIR / CMG ── -->
+        <mxCell id="e20" style="curved=1;strokeColor=#6A1B9A;strokeWidth=1;rounded=1;" parent="1" source="svc_opschonen" target="cir" edge="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e20_label" value="Java → CIR" style="edgeLabel;html=1;fontSize=9;fontColor=#6A1B9A;" parent="e20" vertex="1" connectable="0">
+          <mxGeometry relative="1" as="geometry"><mxPoint as="offset"/></mxGeometry>
+        </mxCell>
+
+        <mxCell id="e18" style="curved=1;strokeColor=#6A1B9A;strokeWidth=1;rounded=1;" parent="1" source="svc_kwaliteit" target="cmg" edge="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e18_label" value="Java → CMG" style="edgeLabel;html=1;fontSize=9;fontColor=#6A1B9A;" parent="e18" vertex="1" connectable="0">
+          <mxGeometry relative="1" as="geometry"><mxPoint as="offset"/></mxGeometry>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

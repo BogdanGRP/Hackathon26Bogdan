@@ -1,0 +1,1074 @@
+@startuml cgs-all-apps-services-routing
+' ╔══════════════════════════════════════════════════════════════════════════╗
+' ║  CGS COMPLETE APPLICATION → SERVICE → PROVIDER ROUTING MAP             ║
+' ║  All 55 consumer applications · 220 active services · All providers    ║
+' ║  Source: igp_ontwikkel_cgs_owner database (live configuration)         ║
+' ╚══════════════════════════════════════════════════════════════════════════╝
+
+title **CGS Complete Application Routing Map**\nAll 55 Consumer Applications → 220 Active Services → All Provider Destinations\n<size:10>Database: igp_ontwikkel_cgs_owner | 660 authorizations | 532 routing channels | 993 transformations</size>
+
+skinparam backgroundColor #FEFEFE
+skinparam defaultFontSize 9
+skinparam componentStyle rectangle
+skinparam linetype polyline
+skinparam nodesep 12
+skinparam ranksep 25
+
+' ═══════════════════════════════════════════════════════════════
+' LEFT COLUMN: ALL CONSUMER APPLICATIONS (sorted by # services)
+' ═══════════════════════════════════════════════════════════════
+
+together {
+package "Consumer Applications\n(55 apps, sorted by service count)" as consumers #F5F5F5 {
+  
+  package "Power Users (30+ services)" as power_users #FFF3E0 {
+    component "ZGS_SSL (85 svc)" as ZGS_SSL #FFE0B2
+    component "iBurgerzaken (45)" as iBurgerzaken #FFE0B2
+    component "ZGS (45)" as ZGS #FFE0B2
+    component "CBB (37)" as CBB #FFE0B2
+    component "CWIZ (37)" as CWIZ #FFE0B2
+    component "CZA (32)" as CZA #FFE0B2
+    component "iSamenleving (30)" as iSamenleving #FFE0B2
+  }
+  
+  package "Heavy Users (10-29 services)" as heavy_users #E8F5E9 {
+    component "CML (29)" as CML #C8E6C9
+    component "FrontOffice (24)" as FrontOffice #C8E6C9
+    component "WebNext (20)" as WebNext #C8E6C9
+    component "CIPERS (19)" as CIPERS #C8E6C9
+    component "CGS-internal (18)" as CGS_int #C8E6C9
+    component "Corsa (17)" as Corsa #C8E6C9
+    component "CMG (14)" as CMG #C8E6C9
+    component "CGA (13)" as CGA #C8E6C9
+    component "CIN (12)" as CIN #C8E6C9
+    component "CIR_NODE (11)" as CIR_NODE #C8E6C9
+    component "SquitXO (11)" as SquitXO #C8E6C9
+    component "Alfresco (11)" as Alfresco #C8E6C9
+    component "CBR (10)" as CBR #C8E6C9
+  }
+  
+  package "Standard Users (3-9 services)" as std_users #E3F2FD {
+    component "CMD (9)" as CMD #BBDEFB
+    component "CMO (9)" as CMO #BBDEFB
+    component "CPT (9)" as CPT #BBDEFB
+    component "CKD (8)" as CKD #BBDEFB
+    component "CBS (7)" as CBS #BBDEFB
+    component "Decos (7)" as Decos #BBDEFB
+    component "DKD (6)" as DKD #BBDEFB
+    component "ZTC (4)" as ZTC #BBDEFB
+    component "ROS (4)" as ROS #BBDEFB
+    component "KVK (4)" as KVK #BBDEFB
+    component "iObjecten (3)" as iObjecten #BBDEFB
+    component "CIR (3)" as CIR #BBDEFB
+    component "CLIQ (3)" as CLIQ #BBDEFB
+    component "CPE (3)" as CPE #BBDEFB
+    component "GWS (3)" as GWS #BBDEFB
+    component "4WOZ (3)" as WOZ4 #BBDEFB
+    component "Legacy (3)" as Legacy #BBDEFB
+    component "LV WOZ (3)" as LVWOZ #BBDEFB
+    component "MijnOverheid (3)" as MijnOverheid #BBDEFB
+    component "TOG (3)" as TOG #BBDEFB
+    component "TTA (3)" as TTA #BBDEFB
+    component "Verseon (3)" as Verseon #BBDEFB
+  }
+  
+  package "Light Users (1-2 services)" as light_users #F3E5F5 {
+    component "Djuma (2)" as Djuma #E1BEE7
+    component "NedGraphics (2)" as NedGraphics #E1BEE7
+    component "CORV (2)" as CORV #E1BEE7
+    component "GEOTAX (2)" as GEOTAX #E1BEE7
+    component "OLO (2)" as OLO #E1BEE7
+    component "BBox Mailing (2)" as BBoxM #E1BEE7
+    component "CIZ (2)" as CIZ #E1BEE7
+    component "STP (2)" as STP #E1BEE7
+    component "Redora (1)" as Redora #E1BEE7
+    component "CMLGBA (1)" as CMLGBA #E1BEE7
+    component "ROSWOZ (1)" as ROSWOZ #E1BEE7
+    component "SmartDocuments (1)" as SmartDocs #E1BEE7
+    component "SNG (1)" as SNG #E1BEE7
+    component "DSO (1)" as DSO #E1BEE7
+    component "Digilevering (1)" as Digilevering #E1BEE7
+    component "GGK (1)" as GGK #E1BEE7
+    component "TERCERA (1)" as TERCERA #E1BEE7
+    component "iAdministratie (1)" as iAdmin #E1BEE7
+  }
+}
+}
+
+' ═══════════════════════════════════════════════════════════════
+' CENTER: ALL 220 SERVICES (grouped by domain)
+' ═══════════════════════════════════════════════════════════════
+
+together {
+package "CGS Service Catalog — 220 Active Services" as services_catalog #FFFDE7 {
+  
+  package "StUF-BG (Persons/Addresses)" as stuf_bg_svc #C8E6C9 {
+    component "StUFBeantwoordVraagBG [SYN]\n→ CGS, CML, CMM" as svc_BG_vraag
+    component "StUFBeantwoordVraagIntegraalBG [SYN]\n→ CGS, CMM" as svc_BG_integraal
+    component "StUFBeantwoordVraagMedeverhuizers [SYN]\n→ CGS" as svc_BG_medeverh
+    component "StUFOntvangAsynchroonBG [ASYN]\n→ 29ch: 4WOZ,CBB,CBR,CGA,CGS,CIN,\nCKD,CMD,CMG,CMM,CMO,CWIZ,CZA,\nGEOTAX,Legacy,TOG,WebNext" as svc_BG_async
+    component "StUFOntvangAsynchroonBGBAG [ASYN]\n→ 4ch: CBB, CGS" as svc_BG_BAG_async
+    component "StUFValideerAsynchroonBericht [SYN]\n→ CGS" as svc_BG_valideer
+  }
+  
+  package "StUF-ZKN (Cases)" as stuf_zkn_svc #BBDEFB {
+    component "StUFBeantwoordVraagZKN [SYN]\n→ CGS, CMZ" as svc_ZKN_vraag
+    component "StUFBeantwoordVraagZKNZSDMS [SYN]\n→ CGS, CMZ, Djuma" as svc_ZKN_ZSDMS
+    component "StUFBeantwoordVraagZKNZSDMS12 [SYN]\n→ CGS" as svc_ZKN_ZSDMS12
+    component "StUFOntvangAsynchroonZKN [ASYN]\n→ 18ch: BuitenBeter,CBB,CGS,CMG,\nCMO,CMZ,CORV,CWIZ,CZA,\niSamenleving,MijnOverheid,SquitXO,WebNext" as svc_ZKN_async
+    component "StUFOntvangAsynchroonZKNZSDMS [ASYN]\n→ 4ch: CGS, CMZ, iSamenleving, WebNext" as svc_ZKN_ZSDMS_async
+    component "StUFVrijeBerichtenZKN [SYN]\n→ CGS, CMG, CMZ" as svc_ZKN_vrij
+    component "StUFVrijeBerichtenZSDMS12 [SYN]\n→ CGS, CMZ" as svc_ZKN_ZSDMS12_vrij
+    component "StUFOntvangSynchroonZKNZSDMS [SYN]\n→ CGS, iSamenleving" as svc_ZKN_ZSDMS_sync
+  }
+  
+  package "StUF-WOZ (Property Valuation)" as stuf_woz_svc #FFCCBC {
+    component "StUFBeantwoordVraagWOZ [SYN]\n→ CBB, CGS, LV WOZ" as svc_WOZ_vraag
+    component "StUFBeantwoordVraagWOZMO [SYN]\n→ CGS" as svc_WOZ_MO
+    component "StUFOntvangAsynchroonWOZ [ASYN]\n→ 6ch: 4WOZ, CBB, CGS, GEOTAX,\nLV WOZ, TOG" as svc_WOZ_async
+    component "StUFOntvangAsynchroonWOZLV [ASYN]\n→ LV WOZ" as svc_WOZ_LV
+    component "StUFMassaleBevragingWOZ0312 [SYN]\n→ CGS" as svc_WOZ_massaal
+  }
+  
+  package "StUF-BZ (Tax/Belastingen)" as stuf_bz_svc #E1BEE7 {
+    component "StUFBeantwoordVraagBZ [SYN]\n→ CBB, CGS" as svc_BZ_vraag
+    component "StUFOntvangAsynchroonBZ [ASYN]\n→ 5ch: CBB, CGS, CPA, CPU, CZA" as svc_BZ_async
+  }
+  
+  package "StUF-EF (e-Forms)" as stuf_ef_svc #F8BBD0 {
+    component "StUFOntvangAsynchroonEF [ASYN]\n→ 6ch: CBB,CGS,CMO,CPA,CPU,WebNext" as svc_EF_async
+  }
+  
+  package "StUF-FIN (Finance)" as stuf_fin_svc #FFCDD2 {
+    component "StUFBeantwoordVraagFIN [SYN]\n→ CGS" as svc_FIN_vraag
+    component "StUFOntvangAsynchroonFIN [ASYN]\n→ CIN, Corsa" as svc_FIN_async
+  }
+  
+  package "StUF-Other (DCR, LVO, GGK, BAG, WKPB, JZ)" as stuf_other_svc #E0E0E0 {
+    component "StUFOntvangAsynchroonDCR [ASYN]\n→ 4ch: CBB, CZA, DCV, WebNext" as svc_DCR_async
+    component "StUFOntvangSynchroonDCR [SYN]\n→ CGS" as svc_DCR_sync
+    component "StUFOntvangAsynchroonLVO [ASYN]\n→ 3ch: CGS, OLO, SquitXO" as svc_LVO_async
+    component "StUFOntvangAsynchroonLVOBVG [ASYN]\n→ CGS" as svc_LVOBVG_async
+    component "StUFOntvangAsynchroonLVOLV [ASYN]\n→ CGS" as svc_LVOLV_async
+    component "StUFOntvangAsynchroonGGK [ASYN]\n→ 4ch: CGS, CWIZ, GGK" as svc_GGK_async
+    component "StUFOntvangAsynchroonJZ [ASYN]\n→ 4ch: CORV, iSamenleving" as svc_JZ_async
+    component "StUFOntvangAsynchroonBAGGeo [ASYN]\n→ CGS" as svc_BAGGeo_async
+    component "StUFVerwerkKennisgevingBAG [SYN]\n→ CGS, LV BAG" as svc_BAG_kennis
+    component "StUFVerwerkSynchronisatieBAG [SYN]\n→ CGS" as svc_BAG_sync
+    component "StUFVerwerkKennisgevingWKPB [SYN]\n→ CGS" as svc_WKPB_kennis
+    component "StUFVerwerkTransactieWKPB [SYN]\n→ CGS" as svc_WKPB_trans
+    component "StUFBeantwoordVraagWKPB [SYN]\n→ CGS" as svc_WKPB_vraag
+    component "StUFBeantwoordVraagWIZ [SYN]\n→ CGS" as svc_WIZ_vraag
+    component "StUFOntvangAsynchroonOverdragenZSDMS12 [ASYN]\n→ Djuma, iSamenleving" as svc_ZSDMS12_overdr
+    component "StUFVerwerkTriggerbericht [SYN]\n→ CGS, CMG, CMM" as svc_trigger
+    component "StUFOntvangSynchroonCBB [SYN]\n→ CBB" as svc_sync_CBB
+    component "StUFOntvangSynchroonCGA [SYN]\n→ CGA" as svc_sync_CGA
+    component "StUFOntvangSynchroonIOBJ [SYN]\n→ CBB, CGA, iObjecten" as svc_sync_IOBJ
+    component "StUFOntvangSynchroonGeoBAG [SYN]\n→ CGS" as svc_sync_GeoBAG
+    component "StUFOntvangSynchroonROS [SYN]\n→ CGS" as svc_sync_ROS
+  }
+  
+  package "BRP / GBA National Person Registry" as brp_svc #FCE4EC {
+    component "BevragingBRP [SYN]\n→ CGS (StUFBRPBevraging)" as svc_BRP_bevr
+    component "BijhoudingBRP [SYN]\n→ CGS (StUFBRPBijhouding)" as svc_BRP_bijh
+    component "OpvragenPersoonsDossierGBA [SYN]\n→ CGS" as svc_GBA_dossier
+    component "OpvragenPersoonsDossierGBAV [SYN]\n→ CGS" as svc_GBAV_dossier
+    component "OpvragenPersoonsDossierGBAVBZ [SYN]\n→ CGS" as svc_GBAV_BZ
+    component "OpvragenPersoonsdossierGBAVviaCML [SYN]\n→ CGS, CML" as svc_GBAV_CML
+    component "OpvragenVolledigePL [SYN]\n→ CGS" as svc_GBAV_volledig
+    component "OpvragenPersoonsDossierPIVAV [SYN]\n→ CGS" as svc_PIVAV
+    component "OvernemenPersoonGBAV [SYN]\n→ CGS" as svc_GBAV_overn
+    component "OpvragenAfnemerIndicaties [SYN]\n→ CGS" as svc_GBA_afnemer
+    component "WijzigenWachtwoordGBAV [SYN]\n→ CGS" as svc_GBAV_ww
+    component "WijzigenWachtwoordGBAVBZ [SYN]\n→ CGS" as svc_GBAV_wwBZ
+    component "WijzigenWachtwoordPIVAV [SYN]\n→ CGS" as svc_PIVAV_ww
+    component "RegistrerenOvernemenVolgen [SYN]\n→ CGS" as svc_GBAV_reg
+    component "OvernemenVolgenNamensCMLinVOA [SYN]\n→ CGS" as svc_GBAV_voa
+    component "StuurGBABericht [SYN]\n→ CGS" as svc_GBA_stuur
+    component "PlaatsBerichtGBAVOA [SYN]\n→ CGS" as svc_GBAVOA
+  }
+  
+  package "BV-BSN (Citizen Service Number)" as bvbsn_svc #F3E5F5 {
+    component "AanvragenBSNVoorraadBVBSN [SYN]\n→ CGS" as svc_BSN_voorraad
+    component "BVBSNAanvragenBSNVoorraad [SYN]\n→ CGS" as svc_BSN_aanvr
+    component "BVBSNPresentievraag [SYN]\n→ CGS" as svc_BSN_present
+    component "PresentievraagBVBSN [SYN]\n→ CGS" as svc_BSN_pres2
+    component "OpvragenBurgerServiceNummerBVBSN [SYN]\n→ CGS" as svc_BSN_opvr
+    component "OphalenIdentificerendeGegevensBVBSN [SYN]\n→ CGS" as svc_BSN_ident
+    component "ControlerenIdentificerendeGegevensBVBSN [SYN]\n→ CGS" as svc_BSN_contr
+    component "VerifieerIdentiteitsDocumentBVBSN [SYN]\n→ CGS" as svc_BSN_verif
+    component "ZoekNummerBVBSN [SYN]\n→ CGS" as svc_BSN_zoek
+    component "VraagVoorraadAnrService [SYN]\n→ CGS" as svc_BSN_VrdAnr
+  }
+  
+  package "CMG / Broker (Makelaarsgegevens)" as cmg_svc #FFF9C4 {
+    component "OpvragenAutorisatieCMG [SYN]\n→ CGS" as svc_CMG_autori
+    component "OpvragenConsistentieControleCMG [SYN]\n→ CGS" as svc_CMG_consist
+    component "OpvragenLeverGegevensCMG [SYN]\n→ CGS" as svc_CMG_lever
+    component "OpvragenMutatiesCMM [SYN]\n→ CGS, CMM" as svc_CMM_mut
+    component "PlaatsBerichtCMG [SYN]\n→ CGS" as svc_CMG_plaats
+    component "CollectOperationalInfoService [SYN]\n→ CGS" as svc_CMG_oper
+    component "TransformatieService [SYN]\n→ CGS" as svc_CMG_transf
+  }
+  
+  package "CMIS (Document Management)" as cmis_svc #E0F2F1 {
+    component "CMISDiscoveryService [SYN]\n→ Alfresco, CGS, Corsa, Decos" as svc_CMIS_disc
+    component "CMISNavigationService [SYN]\n→ Alfresco, CGS, Corsa, Decos" as svc_CMIS_nav
+    component "CMISObjectService [SYN]\n→ Alfresco, CGS, Corsa, Decos" as svc_CMIS_obj
+    component "CMISRepositoryService [SYN]\n→ Alfresco, CGS, Corsa, Decos" as svc_CMIS_repo
+    component "CMISVersioningService [SYN]\n→ Alfresco, CGS, Corsa, Decos" as svc_CMIS_ver
+    component "CMISMultiFilingService [SYN]\n→ Alfresco, CGS, Corsa, Decos" as svc_CMIS_multi
+  }
+  
+  package "ITP (Printing & Documents)" as itp_svc #DCEDC8 {
+    component "OpvragenItpCheckConnection [SYN]\n→ CGS, ITP" as svc_ITP_check
+    component "OpvragenItpGetVersion [SYN]\n→ CGS, ITP" as svc_ITP_ver
+    component "OpvragenItpPathExists [SYN]\n→ CGS, ITP" as svc_ITP_path
+    component "OpvragenItpPrinterCount [SYN]\n→ CGS, ITP" as svc_ITP_cnt
+    component "OpvragenItpPrinterExists [SYN]\n→ CGS, ITP" as svc_ITP_exist
+    component "OpvragenItpPrinterInfo [SYN]\n→ CGS, ITP" as svc_ITP_info
+    component "OpvragenItpSubmitJobASync [SYN]\n→ CGS, ITP" as svc_ITP_job
+    component "AiaAuthoringContentManagementStartSessionV1 [SYN]\n→ ITP" as svc_AIA_start
+    component "AiaOnDemandCreateDocxBasicV1 [SYN]\n→ ITP" as svc_AIA_docx
+    component "AiaOnDemandCreateHtmlBasicV1 [SYN]\n→ ITP" as svc_AIA_html
+    component "AiaOnDemandCreatePdfBasicV1 [SYN]\n→ ITP" as svc_AIA_pdf
+    component "GenerateDocument [SYN]\n→ ITP" as svc_GenDoc
+    component "PrinterService [SYN]\n→ ITP" as svc_Printer
+  }
+  
+  package "NHR / KVK (Companies)" as nhr_svc #F0F4C3 {
+    component "StUFBeantwoordVraagHR [SYN]\n→ CGS" as svc_HR_vraag
+    component "StUFBeantwoordVraagNHR [SYN]\n→ CGS" as svc_NHR_vraag
+    component "StUFBeantwoordVraagNHRPLUS [SYN]\n→ CGS" as svc_NHRPLUS
+    component "KVKEventService [SYN]\n→ CGS" as svc_KVK_event
+    component "KVKMutatieService [ASYN]\n→ CGS" as svc_KVK_mut
+    component "VerwerkNHRBericht [SYN]\n→ CGS" as svc_NHR_verwerk
+    component "OpslaanNHR2BGService [SYN]\n→ CGS" as svc_NHR2BG
+    component "OpslaanNHRPlusService [SYN]\n→ CGS" as svc_NHRPlus
+    component "OpslaanMaatschappelijkeActiviteitService [SYN]\n→ CGS" as svc_Maatsch
+    component "KwaliteitBedrijvenService [SYN]\n→ CGS" as svc_KwalBedrijf
+    component "OpschonenBedrijvenService [SYN]\n→ CGS" as svc_Opschonen
+  }
+  
+  package "Berichtenbox / MijnOverheid" as bbox_svc #B3E5FC {
+    component "BerichtenboxAbonnementService [ASYN]\n→ CGS" as svc_BBox_abon
+    component "BerichtenboxBerichtverwerkservice [ASYN]\n→ 8ch: BBox Mailing,CBB,CGS,\nCWIZ,MijnOverheid,WebNext" as svc_BBox_verwerk
+    component "BerichtenboxValidatieService [SYN]\n→ CGS" as svc_BBox_valid
+    component "OpvragenAccountStatusMijnOverheid [SYN]\n→ CGS" as svc_MijnOvh
+  }
+  
+  package "Digikoppeling / ebMS (Government)" as digi_svc #F8BBD0 {
+    component "DigikoppelingGrootBericht [SYN]\n→ CGS" as svc_DK_groot
+    component "DigileveringService [ASYN]\n→ 5ch: CBB, Digilevering" as svc_Digilever
+    component "DigipoortAanleveren [SYN]\n→ CGS" as svc_Digipoort_aanl
+    component "DigipoortStatusinformatie [SYN]\n→ CGS" as svc_Digipoort_stat
+    component "CLIQebMSService [SYN]\n→ CGS" as svc_CLIQ_ebms
+    component "CLIQWUSService [SYN]\n→ CGS" as svc_CLIQ_wus
+    component "SimplerInvoicingService [SYN]\n→ CGS" as svc_Simpler
+    component "EbMSTestService [SYN]\n→ CGS" as svc_ebMS_test
+    component "DigimeldingService [SYN]\n→ CGS" as svc_Digimelding
+    component "DigimeldingServiceLV [SYN]\n→ CGS" as svc_DigimeldLV
+  }
+  
+  package "ZTC (Case Type Catalog)" as ztc_svc #D7CCC8 {
+    component "OpvragenAfhandelingZTC [SYN]\n→ CGS" as svc_ZTC_afh
+    component "OpvragenZaaktypeGegevensZTC [SYN]\n→ CGS" as svc_ZTC_zaak
+    component "OpvragenAfhandelingZaakType [SYN]\n→ CGS" as svc_ZTC_zaaktype
+    component "OpvragenDocumenttypeGegevensZTC [SYN]\n→ CGS" as svc_ZTC_doc
+    component "ToevoegenZaaktypeGegevensZTC [SYN]\n→ CGS" as svc_ZTC_toev
+    component "WijzigenZaaktypeGegevensZTC [SYN]\n→ CGS" as svc_ZTC_wijz
+    component "NotificatieToevoegingAfhandelingZTC [ASYN]\n→ CZA" as svc_ZTC_notif
+    component "ZTCService [SYN]\n→ CGS" as svc_ZTC
+  }
+  
+  package "CiPers (Personnel)" as cipers_svc #CFD8DC {
+    component "ActualiserenGBA [SYN]\n→ CGS (CPA)" as svc_ActGBA
+    component "BijhoudenPersoonCipers [SYN]\n→ CGS (CPA/MQ)" as svc_BijhCipers
+    component "OpvragenPersoonCipers [SYN]\n→ CGS" as svc_OpvrCipers
+    component "BetalingCipersJCC [SYN]\n→ CGS (CPA/MQ)" as svc_BetalCipers
+  }
+  
+  package "Social Domain (DKD, DUO, UWV, GSD)" as social_svc #FFECB3 {
+    component "BijstandsregelingenService [SYN]\n→ CGS" as svc_Bijstand
+    component "BijstandsregelingenServiceSuwiML [SYN]\n→ CGS" as svc_BijstandSuwi
+    component "GSDDossierPersoonService [SYN]\n→ CGS" as svc_GSD_pers
+    component "GSDDossierReintegratieService [SYN]\n→ CGS" as svc_GSD_reint
+    component "GSDDossierReintegratieServiceSuwiML [SYN]\n→ CGS" as svc_GSD_suwi
+    component "DUODossierPersoonGSDService [SYN]\n→ CGS" as svc_DUO_pers
+    component "DUORelatiefVerzuimActieV12 [SYN]\n→ CGS, VSV" as svc_DUO_v12
+    component "DUORelatiefVerzuimActieV13 [SYN]\n→ CGS, VSV" as svc_DUO_v13
+    component "UWVDossierArbeidsverledenService [SYN]\n→ CGS" as svc_UWV_arb
+    component "UWVWbDossierPersoonGSDService [SYN]\n→ CGS" as svc_UWV_wb
+    component "WerkpleinDienstverleningEWwbService [SYN]\n→ CGS" as svc_Werkplein
+    component "IBVerwijsindexService [SYN]\n→ CGS" as svc_IB_verwijs
+    component "IBVerwijsindexServiceSuwiML [SYN]\n→ CGS" as svc_IB_suwi
+    component "OpvragenWLZIndicatieCIZ [SYN]\n→ CGS" as svc_WLZ
+    component "CSAMService [SYN]\n→ CGS" as svc_CSAM
+    component "EOSService [SYN]\n→ CGS, EOS" as svc_EOS
+  }
+  
+  package "Land Registry (BRK/Kadaster/BAG)" as brk_svc #E8EAF6 {
+    component "BestandenlijstGBOpvragenBRK [SYN]\n→ CGS" as svc_BRK_lijst
+    component "GDS2BestandenlijstOpvragen [SYN]\n→ CGS" as svc_GDS2
+    component "KIKInzagenService [SYN]\n→ CGS" as svc_KIK
+    component "KIKInzageService [SYN]\n→ CGS" as svc_KIK2
+    component "BagvsObjectBevragenApd [SYN]\n→ LV BAG" as svc_BAG_bevr
+    component "GeodataService [SYN]\n→ CGS" as svc_Geodata
+    component "CatalogusWebservice [SYN]\n→ CGS" as svc_Catalogus
+  }
+  
+  package "Miscellaneous Domain Services" as misc_svc #ECEFF1 {
+    component "AWRService [SYN]\n→ CGS (Aenova)" as svc_AWR
+    component "JCCService [SYN]\n→ CGS, JCC" as svc_JCC
+    component "KCRService [SYN]\n→ CGS" as svc_KCR
+    component "GPKService [SYN]\n→ CGS" as svc_GPK
+    component "RDWService [SYN]\n→ CGS, RDW" as svc_RDW
+    component "FtpService [SYN]\n→ 10ch: CGS" as svc_FTP
+    component "VerzendEmail [SYN]\n→ CGS" as svc_Email
+    component "ElektronischeHandtekening [SYN]\n→ CGS" as svc_EHand
+    component "PrefilleFormulierservice [SYN]\n→ CGS, CMM, TTA, ZGS_SSL" as svc_Prefill
+    component "K2BServiceBurgerzaken [SYN]\n→ CGS" as svc_K2B
+    component "DocuDistriService [SYN]\n→ CGS" as svc_DocuDistri
+    component "CertificaatService [SYN]\n→ CGS" as svc_Cert
+    component "CertificaatVerwijderen [SYN]\n→ CGS" as svc_CertVerw
+    component "BVVHerzieneBerekeningBeslaglegger [SYN]\n→ CGS" as svc_BVV_herz
+    component "BVVInitBerekeningBeslaglegger [SYN]\n→ CGS" as svc_BVV_init
+    component "BVVModelmededelingsgenerator [SYN]\n→ CGS" as svc_BVV_model
+    component "RegieZaakService [SYN]\n→ CGS" as svc_Regie
+    component "OpvragenKlantkaartVoorBSNummer [SYN]\n→ CIK, CWK" as svc_Klantkaart
+    component "NationaalParkeerRegister [SYN]\n→ CGS" as svc_NPR
+    component "OpvragenParkeerRechten [SYN]\n→ CGS" as svc_Parkeer
+    component "GeneriekeKINGSleutelService [SYN]\n→ CGS" as svc_KING
+    component "GeneriekeSleutelService [SYN]\n→ CGS" as svc_GenSleutel
+    component "LDAPInformationService [SYN]\n→ CGS" as svc_LDAP
+    component "MKSConfigurationService [SYN]\n→ CGS" as svc_MKSConfig
+    component "DigiBoxService [SYN]\n→ CGS" as svc_DigiBox
+    component "BRPUpdateAPIService [SYN]\n→ CGS" as svc_BRPUpdate
+    component "iLogboekService [SYN]\n→ CGS" as svc_iLogboek
+    component "InfoMAUService [SYN]\n→ CGS" as svc_InfoMAU
+    component "MAUDownloadService [SYN]\n→ CGS" as svc_MAUDl
+    component "IntakeSynchroonDSO [SYN]\n→ CGS" as svc_DSO_intake
+    component "IntakeSynchroonDSOBVG [SYN]\n→ CGS" as svc_DSO_BVG
+    component "OntvangAsynchroonDSOLV [ASYN]\n→ 3ch: CGS" as svc_DSOLV
+  }
+  
+  package "Test & Operational Services" as test_svc #F5F5F5 {
+    component "ConfigurationTestService [SYN]\n→ CGS" as svc_ConfigTest
+    component "OperationalInfoCGSService [SYN]\n→ CGS" as svc_OpInfo_CGS
+    component "OperationalInfoCMGService [SYN]\n→ CGS" as svc_OpInfo_CMG
+    component "TestAxiomAsynService [ASYN]\n→ 5ch: CGS, ZGS" as svc_TestAsync
+    component "TestAxiomSynService [SYN]\n→ 3ch: CGS, ZGS" as svc_TestSync
+    component "TestAxiomAsynCompositeService [ASYN]\n→ CGS" as svc_TestAsyncComp
+    component "TestAxiomSynCompositeService [SYN]\n→ CGS" as svc_TestSyncComp
+    component "ApplicatieService [SYN]\n→ CGS (Java)" as svc_AppSvc
+  }
+}
+}
+
+' ═══════════════════════════════════════════════════════════════
+' RIGHT COLUMN: ALL PROVIDER DESTINATIONS
+' ═══════════════════════════════════════════════════════════════
+
+together {
+package "Provider Destinations\n(where messages are delivered)" as providers #FCE4EC {
+  
+  package "Internal CGS (Java/WS)" as prov_cgs {
+    component "CGS\n//Most services terminate here//\n//then forward to external//" as p_CGS #FFCDD2
+  }
+  
+  package "CiVision SAP (ABAP)" as prov_sap {
+    component "CBB //ABAP//" as p_CBB #FFE0B2
+    component "CGA //ABAP//" as p_CGA #FFE0B2
+    component "CZA //ABAP//" as p_CZA #FFE0B2
+    component "CIN //ABAP//" as p_CIN #FFE0B2
+  }
+  
+  package "Broker (Java)" as prov_broker {
+    component "CMG //Java//" as p_CMG #FFF9C4
+    component "CML //Java//" as p_CML #FFF9C4
+    component "CMM //Java//" as p_CMM #FFF9C4
+    component "CMZ //Java//" as p_CMZ #FFF9C4
+  }
+  
+  package "DMS (CMIS)" as prov_dms {
+    component "Alfresco //CMIS WS//" as p_Alfresco #B2DFDB
+    component "Corsa //CMIS WS//" as p_Corsa #B2DFDB
+    component "Decos //CMIS WS//" as p_Decos #B2DFDB
+    component "Djuma //WS//" as p_Djuma #B2DFDB
+  }
+  
+  package "Third-Party Providers" as prov_tp {
+    component "ITP //AIA Printing//" as p_ITP #CFD8DC
+    component "JCC //Appointments//" as p_JCC #CFD8DC
+    component "RDW //Vehicle Reg.//" as p_RDW #CFD8DC
+    component "EOS //Service//" as p_EOS #CFD8DC
+    component "VSV //DUO School//" as p_VSV #CFD8DC
+    component "DCV //DCR provider//" as p_DCV #CFD8DC
+    component "OLO //ebMS//" as p_OLO #CFD8DC
+    component "SquitXO //Cases//" as p_SquitXO #CFD8DC
+  }
+  
+  package "National Facilities" as prov_nat {
+    component "LV BAG //Land Registry//" as p_LVBAG #F8BBD0
+    component "LV WOZ //Valuation//" as p_LVWOZ #F8BBD0
+    component "Digilevering //Nat. Delivery//" as p_Digilev #F8BBD0
+    component "MijnOverheid //ebMS//" as p_MijnOvh #F8BBD0
+    component "BuitenBeter //ZKN//" as p_BuitenBeter #F8BBD0
+    component "CORV //JZ//" as p_CORV #F8BBD0
+    component "GGK //async//" as p_GGK #F8BBD0
+  }
+  
+  package "Internal Async Fan-out" as prov_fanout {
+    component "4WOZ" as p_4WOZ #E1BEE7
+    component "CBR" as p_CBR #E1BEE7
+    component "CKD" as p_CKD #E1BEE7
+    component "CMD" as p_CMD #E1BEE7
+    component "CMO" as p_CMO #E1BEE7
+    component "CWIZ" as p_CWIZ #E1BEE7
+    component "GEOTAX" as p_GEOTAX #E1BEE7
+    component "Legacy" as p_Legacy #E1BEE7
+    component "TOG" as p_TOG #E1BEE7
+    component "WebNext" as p_WebNext #E1BEE7
+    component "iSamenleving" as p_iSam #E1BEE7
+    component "BBox Mailing" as p_BBoxM #E1BEE7
+    component "CPA/CPU" as p_CPA #E1BEE7
+    component "TTA" as p_TTA #E1BEE7
+    component "iObjecten" as p_iObj #E1BEE7
+  }
+}
+}
+
+' ═══════════════════════════════════════════════════════════════
+' KEY CONNECTIONS: Consumers → Services (major paths only)
+' ═══════════════════════════════════════════════════════════════
+
+' Power users → StUF-BG
+ZGS_SSL -[#E65100]-> svc_BG_vraag
+ZGS_SSL -[#E65100]-> svc_BG_async
+ZGS_SSL -[#E65100]-> svc_BG_integraal
+CBB -[#E65100]-> svc_BG_vraag
+CBB -[#E65100]-> svc_BG_async
+CZA -[#E65100]-> svc_BG_vraag
+CZA -[#E65100]-> svc_BG_async
+FrontOffice -[#2E7D32]-> svc_BG_vraag
+FrontOffice -[#2E7D32]-> svc_BG_async
+FrontOffice -[#2E7D32]-> svc_BG_integraal
+
+' Power users → StUF-ZKN
+ZGS_SSL -[#1565C0]-> svc_ZKN_vraag
+ZGS_SSL -[#1565C0]-> svc_ZKN_async
+iBurgerzaken -[#1565C0]-> svc_ZKN_vraag
+iBurgerzaken -[#1565C0]-> svc_ZKN_async
+CBB -[#1565C0]-> svc_ZKN_vraag
+CBB -[#1565C0]-> svc_ZKN_async
+CWIZ -[#1565C0]-> svc_ZKN_vraag
+CWIZ -[#1565C0]-> svc_ZKN_async
+CZA -[#1565C0]-> svc_ZKN_vraag
+CZA -[#1565C0]-> svc_ZKN_async
+
+' CMIS connections
+iBurgerzaken -[#00695C]-> svc_CMIS_obj
+CZA -[#00695C]-> svc_CMIS_obj
+CWIZ -[#00695C]-> svc_CMIS_obj
+CMG -[#00695C]-> svc_CMIS_obj
+FrontOffice -[#00695C]-> svc_CMIS_obj
+iSamenleving -[#00695C]-> svc_CMIS_obj
+WebNext -[#00695C]-> svc_CMIS_disc
+Corsa -[#00695C]-> svc_CMIS_obj
+
+' BRP/GBA connections
+iBurgerzaken -[#AD1457]-> svc_BRP_bevr
+iBurgerzaken -[#AD1457]-> svc_BRP_bijh
+ZGS_SSL -[#AD1457]-> svc_GBAV_dossier
+CIPERS -[#AD1457]-> svc_GBAV_dossier
+CML -[#AD1457]-> svc_GBAV_dossier
+SquitXO -[#AD1457]-> svc_GBAV_dossier
+
+' CMG broker services
+CGA -[#6A1B9A]-> svc_CMG_autori
+CGA -[#6A1B9A]-> svc_CMG_lever
+CBB -[#6A1B9A]-> svc_CMG_lever
+CIN -[#6A1B9A]-> svc_CMG_lever
+CKD -[#6A1B9A]-> svc_CMG_lever
+CMD -[#6A1B9A]-> svc_CMG_lever
+CBR -[#6A1B9A]-> svc_CMG_lever
+CZA -[#6A1B9A]-> svc_CMG_lever
+
+' ITP/Printing
+CBS -[#795548]-> svc_ITP_job
+iBurgerzaken -[#795548]-> svc_AIA_docx
+iBurgerzaken -[#795548]-> svc_AIA_pdf
+
+' BV-BSN
+ZGS_SSL -[#4527A0]-> svc_BSN_voorraad
+ZGS_SSL -[#4527A0]-> svc_BSN_pres2
+CIPERS -[#4527A0]-> svc_BSN_voorraad
+CML -[#4527A0]-> svc_BSN_contr
+
+' WOZ
+ZGS_SSL -[#BF360C]-> svc_WOZ_vraag
+CBB -[#BF360C]-> svc_WOZ_vraag
+CBB -[#BF360C]-> svc_WOZ_async
+FrontOffice -[#BF360C]-> svc_WOZ_vraag
+
+' Berichtenbox
+CBB -[#0D47A1]-> svc_BBox_verwerk
+WebNext -[#0D47A1]-> svc_BBox_verwerk
+MijnOverheid -[#0D47A1]-> svc_BBox_verwerk
+
+' NHR/KVK
+CML -[#33691E]-> svc_NHR_vraag
+CML -[#33691E]-> svc_NHR_verwerk
+CIR_NODE -[#33691E]-> svc_NHR_vraag
+KVK -[#33691E]-> svc_KVK_event
+
+' Social domain
+CWIZ -[#FF6F00]-> svc_Bijstand
+CWIZ -[#FF6F00]-> svc_GSD_reint
+iSamenleving -[#FF6F00]-> svc_Bijstand
+DKD -[#FF6F00]-> svc_Bijstand
+DKD -[#FF6F00]-> svc_GSD_pers
+
+' Third-party consumers
+Decos -[#BF360C]-> svc_ZKN_vraag
+Decos -[#BF360C]-> svc_ZKN_async
+Verseon -[#BF360C]-> svc_ZKN_vraag
+CORV -[#BF360C]-> svc_JZ_async
+OLO -[#BF360C]-> svc_LVO_async
+CLIQ -[#BF360C]-> svc_CLIQ_ebms
+DSO -[#BF360C]-> svc_DSOLV
+
+' ═══════════════════════════════════════════════════════════════
+' CONNECTIONS: Services → Providers
+' ═══════════════════════════════════════════════════════════════
+
+' StUF-BG routing
+svc_BG_vraag -[#1565C0,bold]-> p_CGS
+svc_BG_vraag -[#1565C0]-> p_CML
+svc_BG_vraag -[#1565C0]-> p_CMM
+svc_BG_async -[#D32F2F,bold]-> p_CBB
+svc_BG_async -[#D32F2F]-> p_CGA
+svc_BG_async -[#D32F2F]-> p_CGS
+svc_BG_async -[#D32F2F]-> p_CMG
+svc_BG_async -[#D32F2F]-> p_CMM
+svc_BG_async -[#D32F2F]-> p_CWIZ
+svc_BG_async -[#D32F2F]-> p_CIN
+svc_BG_async -[#D32F2F]-> p_4WOZ
+svc_BG_async -[#D32F2F]-> p_WebNext
+
+' StUF-ZKN routing
+svc_ZKN_vraag -[#1565C0]-> p_CGS
+svc_ZKN_vraag -[#1565C0]-> p_CMZ
+svc_ZKN_async -[#D32F2F,bold]-> p_CGS
+svc_ZKN_async -[#D32F2F]-> p_CMG
+svc_ZKN_async -[#D32F2F]-> p_CMZ
+svc_ZKN_async -[#D32F2F]-> p_CZA
+svc_ZKN_async -[#D32F2F]-> p_iSam
+svc_ZKN_async -[#D32F2F]-> p_SquitXO
+svc_ZKN_async -[#D32F2F]-> p_BuitenBeter
+
+' CMIS routing
+svc_CMIS_obj -[#00695C]-> p_Alfresco
+svc_CMIS_obj -[#00695C]-> p_Corsa
+svc_CMIS_obj -[#00695C]-> p_Decos
+
+' BRP/GBA routing
+svc_BRP_bevr -[#AD1457]-> p_CGS
+svc_GBAV_dossier -[#AD1457]-> p_CGS
+
+' WOZ routing
+svc_WOZ_vraag -[#BF360C]-> p_CBB
+svc_WOZ_vraag -[#BF360C]-> p_LVWOZ
+svc_WOZ_async -[#BF360C]-> p_4WOZ
+svc_WOZ_async -[#BF360C]-> p_GEOTAX
+svc_WOZ_async -[#BF360C]-> p_LVWOZ
+
+' ITP routing
+svc_ITP_job -[#795548]-> p_ITP
+svc_AIA_docx -[#795548]-> p_ITP
+svc_GenDoc -[#795548]-> p_ITP
+
+' Berichtenbox routing
+svc_BBox_verwerk -[#0D47A1]-> p_CBB
+svc_BBox_verwerk -[#0D47A1]-> p_MijnOvh
+svc_BBox_verwerk -[#0D47A1]-> p_WebNext
+svc_BBox_verwerk -[#0D47A1]-> p_BBoxM
+
+' EF/BZ routing
+svc_EF_async -[#880E4F]-> p_CBB
+svc_EF_async -[#880E4F]-> p_WebNext
+svc_EF_async -[#880E4F]-> p_CPA
+svc_BZ_async -[#880E4F]-> p_CBB
+svc_BZ_async -[#880E4F]-> p_CZA
+
+' Digikoppeling
+svc_DK_groot -[#AD1457]-> p_CGS
+svc_Digilever -[#AD1457]-> p_Digilev
+
+legend bottom left
+  **Reading this diagram:**
+  • LEFT: Consumer apps (who sends messages). Number = authorized services.
+  • CENTER: All 220 active CGS services grouped by domain.
+    Each shows [SYN/ASYN] handling and → provider destination(s).
+  • RIGHT: Provider apps (where messages ultimately go).
+  
+  **Routing logic:**
+  • SYN services: request→CGS→provider→response (real-time)
+  • ASYN services: request→CGS→queue→fan-out to ALL matching channels
+  • Multi-channel services fan out to multiple providers simultaneously
+  
+  **Top fan-out services:**
+  • StUFOntvangAsynchroonBG: 29 channels → 17 providers
+  • StUFOntvangAsynchroonZKN: 18 channels → 13 providers
+  • FtpService: 10 channels
+  • BerichtenboxBerichtverwerkservice: 8 channels → 6 providers
+endlegend
+
+@enduml
+
+
+@startuml cgs-request-to-response-flow
+' ╔══════════════════════════════════════════════════════════════════════════╗
+' ║  CGS LOGICAL REQUEST → RESPONSE FLOW                                   ║
+' ║  Complete message lifecycle with all message types at each step         ║
+' ║  Shows both SYNC and ASYNC paths                                       ║
+' ╚══════════════════════════════════════════════════════════════════════════╝
+
+title **CGS Request → Response: Complete Message Lifecycle**\n//Every message type used at each processing step//\n<size:10>2065 message definitions · 993 transformations · 10 adapter protocols</size>
+
+skinparam backgroundColor #FEFEFE
+skinparam defaultFontSize 10
+
+|#E8F5E9| Consumer Application |
+
+start
+:Consumer sends **Request Message**
+to CGS service endpoint;
+
+note right
+  **Request message types (from DB):**
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  • vraagBericht (471× StUF BG 0204)
+  • kennisgevingsBericht (354× StUF BG 0204)
+  • asynchroonAntwoordBericht (228×)
+  • GenereerDistribueerNr (BV-BSN)
+  • ActualiserenGBA (CPE)
+  • PRLGOnDemandCreate* (ITP)
+  • AiaAuthoring* (ITP)
+  • BevragingBRP (BRP)
+  • BijhoudingBRP (BRP)
+  • CMIS* requests (DMS)
+  • GSD*/DUO*/UWV* (Social domain)
+  • KVKEvent/NHR* (Companies)
+  • Digikoppeling* (Government)
+  • Berichtenbox* (MijnOverheid)
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  **Protocols IN:**
+  WEBSERVICE (45 in-adapters)
+  ABAP (4), JAVA (4), HTTP (2)
+  ebMS (1), REST (1), FILE (1)
+end note
+
+|#E3F2FD| CGS Service Bus |
+
+partition "**PHASE 1: Authorization Check**" {
+  :Lookup `serviceusage` table
+  (660 authorization records)
+  
+  Does consumer X have access to service Y?;
+  
+  if (Authorized?) then (yes ✓)
+  else (no ✗)
+    :Return **Fault Message**;
+    note right
+      **Fo03Bericht** (StUF 0301)
+      Used 2431× as fault!
+      
+      or **Foutbericht** (CGS internal)
+      Used 1403× as fault
+    end note
+    |#E8F5E9| Consumer Application |
+    stop
+  endif
+}
+
+|#E3F2FD| CGS Service Bus |
+
+partition "**PHASE 2: Service Resolution**" {
+  :Find service in `servicedefinition`
+  (220 active services)
+  
+  Determine handling mode:
+  • **SYN** (184 services) — synchronous
+  • **ASYN** (34 services) — asynchronous;
+  
+  :Log to `logservicerequest`
+  consumer + service + timestamp;
+}
+
+partition "**PHASE 3: Message Matching**" {
+  :Match incoming XML against
+  `messagedefinition` (2065 types)
+  
+  Strategy (ordered):
+  1. SOAPAction header
+  2. Namespace + messagekey
+  3. XPath filter (filterpath)
+  4. Element value (elementvalue);
+  
+  note right
+    **Matching determines:**
+    • Which SCR to use
+    • Which transformation needed
+    • Which response format expected
+    • Which fault format to return
+    
+    **Service Component Relation**
+    (5852 wiring records)
+    Links: service + adapter +
+    request_msg + response_msg + fault_msg
+  end note
+}
+
+partition "**PHASE 4: Request Transformation**" {
+  if (Transformation needed?) then (yes)
+    :Apply XSLT from `transformationdefinition`
+    (993 rules, stored in `xsltcontent`)
+    
+    **Common transformations:**
+    • StUF BG 0204 → BG 0210 (113 rules)
+    • StUF BG 0204 → BG 0310 (102 rules)
+    • StUF BG 0210 → BG 0310
+    • StUF 0204 → 0301 framework
+    • Any custom wildCardRequest;
+    
+    :Log transformed message
+    to `logaction` (3236 entries);
+  else (no)
+  endif
+}
+
+partition "**PHASE 5: Dynamic Routing**" {
+  :Evaluate `channeldefinition`
+  (532 active channels)
+  
+  Filter criteria (AND logic):
+  • filterprovidingapplication_id
+  • filtermessagedefinition_id
+  • XPath content filter
+  • Organisation filter
+  • Channel active = true;
+  
+  note right
+    **Fan-out examples (from DB):**
+    ━━━━━━━━━━━━━━━━━━━━━━━━━
+    StUFOntvangAsynchroonBG:
+      29 channels → 17 providers
+    StUFOntvangAsynchroonZKN:
+      18 channels → 13 providers
+    BerichtenboxBerichtverwerkservice:
+      8 channels → 6 providers
+    StUFOntvangAsynchroonWOZ:
+      6 channels → 6 providers
+    StUFOntvangAsynchroonEF:
+      6 channels → 6 providers
+    CMISObjectService:
+      4 channels → 4 DMS providers
+  end note
+}
+
+if (Service handling?) then (SYN — Synchronous)
+
+  |#FFF3E0| Synchronous Path (184 services) |
+  
+  partition "**PHASE 6A: Synchronous Delivery**" {
+    :Send to provider via adapter
+    (single channel, wait for response);
+    
+    note right
+      **Protocols OUT:**
+      WEBSERVICE (54 out-adapters)
+      JAVA (19), HTTP (8)
+      ABAP (2), FTP (2), MQ (2)
+      UNIFACE (3), ebMS (1)
+      
+      **Endpoint resolution:**
+      adapterdefinition → adapterendpoint
+      → endpointconfiguration (491 configs)
+      URL + credentials + TLS cert
+    end note
+  }
+  
+  :Provider processes request
+  and returns **Response Message**;
+  
+  note right
+    **Response message types:**
+    ━━━━━━━━━━━━━━━━━━━━━━━━━
+    • synchroonAntwoordBericht (258×)
+    • GenereerDistribueerNrResponse
+    • ActualiserenGBAAntwoord
+    • PRLGOnDemandCreate*Response
+    • BevragingBRPResponse
+    • CMIS* responses
+    • GSD*/DUO*/UWV* responses
+    • StUFBeantwoordVraag*Response
+  end note
+  
+  partition "**PHASE 7A: Response Transformation**" {
+    if (Response transformation?) then (yes)
+      :Apply response XSLT
+      (responsetransformation_id in SCR)
+      
+      **Key pattern: Bv04 → Bv03**
+      Provider returns Bv04Bericht (1570×)
+      CGS transforms to Bv03Bericht (893×)
+      for apps that expect Bv03;
+    else (no)
+    endif
+  }
+  
+  |#E8F5E9| Consumer Application |
+  
+  :Consumer receives
+  **Response** or **Fault**;
+  
+  note right
+    **Final response types:**
+    • synchroonAntwoordBericht (success)
+    • bevestigingsBericht StUF 0204 (925×)
+    • bevestigingsBericht StUF 0210 (387×)
+    • Bv03Bericht StUF 0301 (893×)
+    • Fo03Bericht (fault, 2431×)
+    • Fo02Bericht (fault, 588×)
+    • foutBericht StUF 0204 (575×)
+    • Foutbericht CGS (1403×)
+  end note
+  
+  stop
+
+else (ASYN — Asynchronous)
+
+  |#FCE4EC| Asynchronous Path (34 services) |
+  
+  partition "**PHASE 6B: Immediate Confirmation**" {
+    :Return **Bv04Bericht** to consumer
+    (broker confirmation = "message received")
+    Used 1570× as response;
+  }
+  
+  |#E8F5E9| Consumer Application |
+  :Consumer receives Bv04Bericht
+  (or Bv03 after transformation);
+  
+  |#FCE4EC| Asynchronous Path (34 services) |
+  
+  partition "**PHASE 7B: Queue & Fan-out**" {
+    :For EACH matched channel:
+    Place copy in sending queue
+    (QoS = EXACTLYONCE);
+    
+    :Check `applicationopeningperiod`
+    Is target app currently open?;
+    
+    if (App open?) then (yes)
+      :Deliver immediately;
+    else (no — closed)
+      :Hold in queue until
+      opening period starts;
+      :...(time passes)...
+      App opens → deliver;
+    endif
+  }
+  
+  |#FFF9C4| Per Provider Channel (repeated) |
+  
+  partition "**PHASE 8B: Channel Delivery**" {
+    :Apply channel-specific transformation
+    (if requesttransformation_id set)
+    
+    Send to provider endpoint
+    via configured adapter protocol;
+    
+    note right
+      **Example: StUFOntvangAsynchroonBG**
+      delivers to ALL of these:
+      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+      4WOZ → ABAP adapter
+      CBB → ABAP adapter
+      CBR → ABAP adapter
+      CGA → ABAP adapter
+      CGS → Java internal
+      CIN → ABAP adapter
+      CKD → ABAP adapter
+      CMD → ABAP adapter
+      CMG → Java adapter
+      CMM → Java adapter
+      CMO → Java adapter
+      CWIZ → UNIFACE adapter
+      CZA → ABAP adapter
+      GEOTAX → WEBSERVICE
+      Legacy → Java adapter
+      TOG → WEBSERVICE
+      WebNext → HTTP adapter
+    end note
+  }
+  
+  :Each provider processes
+  independently (fire & forget);
+  
+  :Provider sends **Async Response**
+  back through CGS (optional)
+  as asynchroonAntwoordBericht (228×);
+  
+  stop
+
+endif
+
+|#F3E5F5| Logging & Audit (throughout) |
+
+:All steps logged to 4 tables:
+• `logservicerequest` (334 recent)
+• `logroute` (336 recent)
+• `logaction` (3236 recent)
+• `logmessage` (1073 recent);
+
+note right
+  **Complete audit trail per request:**
+  
+  WHO: consumer app + certificate
+  WHAT: service + message type
+  WHERE: provider(s) + endpoint(s)
+  HOW: adapter protocol + transformation
+  WHEN: timestamps at each step
+  RESULT: success/fault + duration
+  
+  **Visible in CGS Dashboard**
+  (auto-refreshing monitoring)
+end note
+
+stop
+
+@enduml
+
+
+@startuml cgs-service-message-matrix
+' ╔══════════════════════════════════════════════════════════════════════════╗
+' ║  CGS SERVICE → MESSAGE TYPE MATRIX                                     ║
+' ║  What messages flow through each service                               ║
+' ╚══════════════════════════════════════════════════════════════════════════╝
+
+title **CGS Service-Message Matrix — What Messages Flow Where**\n//Each service with its request, response, and fault message definitions//\n<size:10>Showing all services with their configured message types from servicecomponentrelation table (5852 records)</size>
+
+skinparam backgroundColor #FEFEFE
+skinparam defaultFontSize 9
+
+map "**StUF-BG Services — Message Types**" as bg_map {
+  StUFBeantwoordVraagBG => REQ: vraagBericht (bg:0204) | RESP: synchroonAntwoordBericht (bg:0204) | FAULT: Fo03Bericht
+  StUFBeantwoordVraagIntegraalBG => REQ: vraagBericht (bg:0204) | RESP: synchroonAntwoordBericht (bg:0204) | FAULT: Fo03Bericht
+  StUFBeantwoordVraagMedeverhuizers => REQ: vraagBericht (bg:0204) | RESP: synchroonAntwoordBericht (bg:0204) | FAULT: Fo03Bericht
+  StUFOntvangAsynchroonBG => REQ: kennisgevingsBericht (bg:0204) | RESP: Bv04Bericht (stuf:0301) | FAULT: Fo03Bericht
+  StUFOntvangAsynchroonBGBAG => REQ: kennisgevingsBericht (bg:0204) | RESP: Bv04Bericht | FAULT: Fo03Bericht
+  StUFValideerAsynchroonBericht => REQ: kennisgevingsBericht | RESP: bevestigingsBericht | FAULT: foutBericht
+}
+
+map "**StUF-ZKN Services — Message Types**" as zkn_map {
+  StUFBeantwoordVraagZKN => REQ: vraagBericht (zkn:0310) | RESP: synchroonAntwoordBericht | FAULT: Fo03Bericht
+  StUFBeantwoordVraagZKNZSDMS => REQ: vraagBericht (zkn) | RESP: synchroonAntwoordBericht | FAULT: Fo03Bericht
+  StUFOntvangAsynchroonZKN => REQ: kennisgevingsBericht (zkn:0310) | RESP: Bv04Bericht | FAULT: Fo03Bericht
+  StUFVrijeBerichtenZKN => REQ: vrijBericht (zkn) | RESP: Bv03Bericht | FAULT: Fo03Bericht
+  StUFVrijeBerichtenZSDMS12 => REQ: vrijBericht (zsdms) | RESP: Bv03Bericht | FAULT: Fo03Bericht
+}
+
+map "**StUF-WOZ Services — Message Types**" as woz_map {
+  StUFBeantwoordVraagWOZ => REQ: vraagBericht (woz:0312) | RESP: synchroonAntwoordBericht | FAULT: Fo03Bericht
+  StUFOntvangAsynchroonWOZ => REQ: kennisgevingsBericht (woz) | RESP: Bv04Bericht | FAULT: Fo03Bericht
+  StUFMassaleBevragingWOZ0312 => REQ: massaalBevragingBericht | RESP: massaalAntwoordBericht | FAULT: Fo03Bericht
+}
+
+map "**BRP/GBA Services — Message Types**" as brp_map {
+  BevragingBRP => REQ: BevragingBRP | RESP: BevragingBRPResponse | FAULT: Foutbericht
+  BijhoudingBRP => REQ: BijhoudingBRP | RESP: BijhoudingBRPResponse | FAULT: Foutbericht
+  OpvragenPersoonsDossierGBAV => REQ: OpvragenPersoonsDossierGBAV | RESP: OpvragenPersoonsDossierGBAVResponse | FAULT: Foutbericht
+  OpvragenVolledigePL => REQ: OpvragenVolledigePL | RESP: OpvragenVolledigePLResponse | FAULT: Foutbericht
+  OvernemenPersoonGBAV => REQ: OvernemenPersoonGBAV | RESP: OvernemenPersoonGBAVResponse | FAULT: Foutbericht
+  ActualiserenGBA => REQ: ActualiserenGBA (CPE:0100) | RESP: ActualiserenGBAAntwoord | FAULT: Foutbericht
+}
+
+map "**BV-BSN Services — Message Types**" as bsn_map {
+  AanvragenBSNVoorraadBVBSN => REQ: GenereerDistribueerNr | RESP: GenereerDistribueerNrResponse | FAULT: same
+  PresentievraagBVBSN => REQ: PresentievraagBVBSN | RESP: PresentievraagBVBSNResponse | FAULT: Foutbericht
+  ControlerenIdentificerend => REQ: ControlerenIdentificerend | RESP: Response | FAULT: Foutbericht
+  VerifieerIdentiteitsDocument => REQ: VerifieerIdentiteits | RESP: Response | FAULT: Foutbericht
+  ZoekNummerBVBSN => REQ: ZoekNummer | RESP: ZoekNummerResponse | FAULT: Foutbericht
+}
+
+map "**CMIS Services — Message Types**" as cmis_map {
+  CMISDiscoveryService => REQ: CMIS Discovery request | RESP: CMIS Discovery response | FAULT: Foutbericht
+  CMISNavigationService => REQ: CMIS Navigation request | RESP: CMIS Navigation response | FAULT: Foutbericht
+  CMISObjectService => REQ: CMIS Object request | RESP: CMIS Object response | FAULT: Foutbericht
+  CMISRepositoryService => REQ: CMIS Repository request | RESP: CMIS Repository response | FAULT: Foutbericht
+  CMISVersioningService => REQ: CMIS Versioning request | RESP: CMIS Versioning response | FAULT: Foutbericht
+  CMISMultiFilingService => REQ: CMIS MultiFiling request | RESP: CMIS MultiFiling response | FAULT: Foutbericht
+}
+
+map "**ITP/Printing Services — Message Types**" as itp_map {
+  AiaOnDemandCreateDocxBasicV1 => REQ: PRLGOnDemandCreateDocxBasicV1Request | RESP: PRLGOnDemandCreateDocxBasicV1Response | FAULT: AiaFaultV1
+  AiaOnDemandCreatePdfBasicV1 => REQ: PRLGOnDemandCreatePdfBasicV1Request | RESP: PRLGOnDemandCreatePdfBasicV1Response | FAULT: AiaFaultV1
+  AiaOnDemandCreateHtmlBasicV1 => REQ: PRLGOnDemandCreateHtmlBasicV1Request | RESP: PRLGOnDemandCreateHtmlBasicV1Response | FAULT: AiaFaultV1
+  GenerateDocument => REQ: GenerateDocumentRequest | RESP: GenerateDocumentResponse | FAULT: Foutbericht
+  PrinterService => REQ: PrinterServiceRequest | RESP: PrinterServiceResponse | FAULT: Foutbericht
+  OpvragenItpSubmitJobASync => REQ: SubmitJob | RESP: SubmitJobResponse | FAULT: Foutbericht
+}
+
+map "**Berichtenbox Services — Message Types**" as bbox_map {
+  BerichtenboxAbonnementService => REQ: Abonnement | RESP: AbonnementResponse | FAULT: Foutbericht
+  BerichtenboxBerichtverwerkservice => REQ: Berichtverwerkservice | RESP: Bv04Bericht | FAULT: Fo03Bericht
+  BerichtenboxValidatieService => REQ: Validatie | RESP: ValidatieResponse | FAULT: Foutbericht
+}
+
+map "**Digikoppeling Services — Message Types**" as digi_map {
+  DigikoppelingGrootBericht => REQ: GrootBericht | RESP: GrootBerichtResponse | FAULT: Foutbericht
+  DigileveringService => REQ: Digilevering notification | RESP: Bv04Bericht | FAULT: Fo03Bericht
+  DigipoortAanleveren => REQ: Aanleveren | RESP: AanleverenResponse | FAULT: Foutbericht
+  CLIQebMSService => REQ: CLIQ ebMS message | RESP: Bv04Bericht | FAULT: Fo03Bericht
+  SimplerInvoicingService => REQ: SimplerInvoice | RESP: SimplerInvoiceResponse | FAULT: Foutbericht
+}
+
+map "**NHR/KVK Services — Message Types**" as nhr_map {
+  StUFBeantwoordVraagHR => REQ: vraagBericht (hr) | RESP: synchroonAntwoordBericht | FAULT: Fo03Bericht
+  StUFBeantwoordVraagNHR => REQ: vraagBericht (nhr) | RESP: synchroonAntwoordBericht | FAULT: Fo03Bericht
+  KVKEventService => REQ: KVKEvent | RESP: KVKEventResponse | FAULT: Foutbericht
+  VerwerkNHRBericht => REQ: VerwerkNHR | RESP: VerwerkNHRResponse | FAULT: Foutbericht
+  OpslaanNHR2BGService => REQ: OpslaanNHR2BG | RESP: OpslaanNHR2BGResponse | FAULT: Foutbericht
+}
+
+map "**Social Domain Services — Message Types**" as social_map {
+  BijstandsregelingenService => REQ: Bijstandsregeling | RESP: BijstandsResponse | FAULT: Foutbericht
+  GSDDossierPersoonService => REQ: DossierPersoon | RESP: DossierPersoonResponse | FAULT: Foutbericht
+  DUODossierPersoonGSDService => REQ: DUODossierPersoon | RESP: DUODossierResponse | FAULT: Foutbericht
+  UWVDossierArbeidsverledenService => REQ: Arbeidsverlelen | RESP: ArbeidsverledenResp | FAULT: Foutbericht
+  IBVerwijsindexService => REQ: IBVerwijsindex | RESP: IBVerwijsindexResp | FAULT: Foutbericht
+  OpvragenWLZIndicatieCIZ => REQ: OpvragenWLZ | RESP: WLZResponse | FAULT: Foutbericht
+}
+
+map "**Misc Domain Services — Message Types**" as misc_map {
+  AWRService => REQ: AWR request | RESP: AWR response | FAULT: Foutbericht
+  JCCService => REQ: JCC request | RESP: JCC response | FAULT: Foutbericht
+  RDWService => REQ: RDW request | RESP: RDW response | FAULT: Foutbericht
+  FtpService => REQ: FTP operation | RESP: FTP result | FAULT: Foutbericht
+  VerzendEmail => REQ: VerzendEmail | RESP: VerzendEmailResp | FAULT: Foutbericht
+  ElektronischeHandtekening => REQ: Handtekening | RESP: HandtekeningResp | FAULT: Foutbericht
+  PrefilleFormulierservice => REQ: Prefille request | RESP: Prefille response | FAULT: Foutbericht
+  GeneriekeSleutelService => REQ: GeneriekeSleutel | RESP: GeneriekeSleutelResp | FAULT: Foutbericht
+}
+
+map "**CMG/Broker Services — Message Types**" as cmg_map {
+  OpvragenAutorisatieCMG => REQ: OpvragenAutorisatie (cmg) | RESP: AutorisatieResponse | FAULT: Foutbericht
+  OpvragenLeverGegevensCMG => REQ: OpvragenLeverGegevens | RESP: LeverGegevensResp | FAULT: Foutbericht
+  OpvragenMutatiesCMM => REQ: OpvragenMutaties | RESP: MutatiesResponse | FAULT: Foutbericht
+  PlaatsBerichtCMG => REQ: PlaatsBericht | RESP: PlaatsBerichtResp | FAULT: Foutbericht
+  TransformatieService => REQ: TransformatieReq | RESP: TransformatieResp | FAULT: Foutbericht
+}
+
+@enduml

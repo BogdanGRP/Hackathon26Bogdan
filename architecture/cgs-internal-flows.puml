@@ -1,0 +1,842 @@
+@startuml cgs-complete-internal-flows
+' ============================================================================
+' CGS Internal Flows — Complete Architecture
+' Based on: Real database data (2026-05-08) + cgs-schema-docs.md domain narrative
+' Scale: 173 apps, 149 adapters, 220 services, 660 subscriptions, 532 channels
+' ============================================================================
+
+title **CGS (Configuratie Generieke Services) — Complete Internal Flows**\n//Enterprise Service Bus for Dutch Municipal Platform MKS//\n173 Applications · 220 Services · 149 Adapters · 532 Channels · 993 Transformations
+
+skinparam backgroundColor #FEFEFE
+skinparam defaultFontSize 11
+skinparam packageBorderColor #666
+skinparam componentStyle rectangle
+
+' ============================================================================
+' LEFT SIDE: Consumer Applications (grouped by service usage volume)
+' ============================================================================
+
+package "Consumer Applications\n(173 registered, top consumers shown)" as consumers #E8F5E9 {
+  component "ZGS_SSL\n(86 services)" as zgs_ssl #C8E6C9
+  component "ZGS\n(46 services)" as zgs #C8E6C9
+  component "iBurgerzaken\n(45 services)" as ibz #C8E6C9
+  component "CWIZ\n(37 services)" as cwiz #C8E6C9
+  component "CBB\n(37 services)" as cbb #C8E6C9
+  component "CZA\n(32 services)" as cza #C8E6C9
+  component "iSamenleving\n(30 services)" as isam #C8E6C9
+  component "CML\n(29 services)" as cml #C8E6C9
+  component "FrontOffice\n(24 services)" as fo #C8E6C9
+  component "CIPERS\n(19 services)" as cipers #C8E6C9
+  component "Corsa\n(17 services)" as corsa #C8E6C9
+  component "CLIQ\n(service)" as cliq #C8E6C9
+}
+
+' ============================================================================
+' CENTER: CGS Service Bus (the ESB core)
+' ============================================================================
+
+package "CGS Service Bus" as cgs_bus #FFF3E0 {
+
+  ' ── STEP 1: Authorization ──
+  package "STEP 1: Authorization Check\nserviceusage (660 rows)" as auth_step #FFECB3 {
+    component "Service\nAuthorization\nRegistry" as auth <<serviceusage>>
+    note bottom of auth
+      **660 app↔service subscriptions**
+      Is this application authorized
+      to call this service?
+      
+      UNIQUE(application_id,
+             servicedefinition_id)
+    end note
+  }
+  
+  ' ── STEP 2: Service Resolution ──
+  package "STEP 2: Service Resolution\nservicedefinition (220 rows)" as svc_step #FFECB3 {
+    component "Service\nCatalog" as svc_catalog <<servicedefinition>>
+    
+    package "Service Categories" as svc_cats {
+      component "Domain Services\n(119)" as domain_svc #FFF9C4
+      component "StUF-BG/ZKN/WOZ\n(59)" as stuf_svc #FFF9C4
+      component "BRP/GBA\n(13)" as brp_svc #FFF9C4
+      component "CMIS\n(6)" as cmis_svc #FFF9C4
+      component "Test Services\n(7)" as test_svc #FFF9C4
+      component "Others: KVK, Digikoppeling,\nBerichtenbox, FTP, BAG (12)" as other_svc #FFF9C4
+    }
+    
+    note bottom of svc_catalog
+      **Service Properties:**
+      • handling: SYN (184) / ASYN (34)
+      • QoS: BESTEFFORT / EXACTLYONCE
+      • Log: request/response/fault
+      • Validation: on/off
+    end note
+  }
+  
+  ' ── STEP 3: Service Wiring ──
+  package "STEP 3: Service Wiring\nservicecomponentrelation (5852 rows)" as wire_step #FFECB3 {
+    component "Service\nComponent\nRelation" as scr <<servicecomponentrelation>>
+    
+    note bottom of scr
+      **5852 service wirings**
+      Links each service to:
+      • Adapter type (how to send)
+      • Request message format
+      • Response message format
+      • Fault message format
+      • Orchestration (optional)
+    end note
+  }
+  
+  ' ── STEP 4: Message Processing ──
+  package "STEP 4: Message Processing\nmessagedefinition (2065 rows)" as msg_step #FFE0B2 {
+    component "Message\nMatcher" as matcher <<messagedefinition>>
+    component "Message\nValidator" as validator
+    
+    package "Message Matching Keys" as msg_keys {
+      component "StUF 0301\n(Fo03, Bv03/04)" as stuf301 #FFCC80
+      component "StUF 0204\n(vraag/kennis/bevestiging)" as stuf204 #FFCC80
+      component "StUF BG 0204\n(personen)" as stufbg #FFCC80
+      component "CGS Foutbericht" as cgsfault #FFCC80
+    }
+    
+    note bottom of matcher
+      **2065 message definitions**
+      Match by:
+      1. SOAPAction header
+      2. namespace + messagekey
+      3. XPath filter expression
+      4. elementvalue
+    end note
+  }
+  
+  ' ── STEP 5: Transformation ──
+  package "STEP 5: Message Transformation\ntransformationdefinition (993 rows)" as trans_step #FFE0B2 {
+    component "XSLT\nTransformation\nEngine" as transformer <<transformationdefinition>>
+    
+    note bottom of transformer
+      **993 transformation rules**
+      Convert between message formats:
+      • StUF 0301 ↔ StUF 0204
+      • StUF BG 0204 ↔ BG 0210
+      • Request → Provider format
+      • Provider response → Consumer format
+      
+      Each uses an XSLT stylesheet
+    end note
+  }
+  
+  ' ── STEP 6: Dynamic Routing ──
+  package "STEP 6: Dynamic Routing\nchanneldefinition (532 rows)" as route_step #FFE0B2 {
+    component "Channel\nRouter" as router <<channeldefinition>>
+    
+    note bottom of router
+      **532 routing channels**
+      
+      Filter conditions:
+      • Provider application
+      • Message definition
+      • XPath expression
+      • Consumer organisation
+      • Provider organisation
+      
+      Top multi-channel services:
+      • StUFOntvangAsynchroonBG: 29 channels
+      • StUFOntvangAsynchroonZKN: 18 channels
+      • FtpService: 10 channels
+      • BerichtenboxBerichten: 8 channels
+    end note
+  }
+  
+  ' ── STEP 7: Orchestration (optional) ──
+  package "STEP 7: Orchestration (optional)\norchestrationdefinition (34 rows)" as orch_step #E0E0E0 {
+    component "Orchestration\nEngine" as orchestrator <<orchestrationdefinition>>
+    
+    note bottom of orchestrator
+      **34 orchestration workflows**
+      Multi-step processing:
+      Call Service A → Transform →
+      Call Service B → Aggregate
+      
+      Java-based implementations
+    end note
+  }
+}
+
+' ============================================================================
+' RIGHT SIDE: Adapter & Endpoint Layer
+' ============================================================================
+
+package "Adapter Layer\n(149 adapter definitions)" as adapter_layer #E3F2FD {
+  
+  package "WEBSERVICE Adapters (99)" as ws_adapters {
+    component "WS Outgoing (54)\nSOAP/WS-* clients" as ws_out #BBDEFB
+    component "WS Incoming (45)\nSOAP listeners" as ws_in #BBDEFB
+  }
+  
+  package "JAVA Adapters (23)" as java_adapters {
+    component "Java Outgoing (19)\nInternal services" as java_out #BBDEFB
+    component "Java Incoming (4)\nInternal listeners" as java_in #BBDEFB
+  }
+  
+  package "Protocol Adapters" as proto_adapters {
+    component "HTTP (10)" as http_adapt #BBDEFB
+    component "ABAP (4)\nSAP JCo" as abap_adapt #BBDEFB
+    component "MQ (3)\nIBM MQ" as mq_adapt #BBDEFB
+    component "FTP (2)" as ftp_adapt #BBDEFB
+    component "UNIFACE (4)" as uniface_adapt #BBDEFB
+    component "ebMS (2)\nDigikoppeling" as ebms_adapt #BBDEFB
+    component "REST (1)" as rest_adapt #BBDEFB
+    component "FILE (1)" as file_adapt #BBDEFB
+  }
+}
+
+package "Endpoints & Configuration" as endpoint_layer #E8EAF6 {
+  component "314 Adapter Endpoints\n(named connection points)" as endpoints <<adapterendpoint>> #C5CAE9
+  component "491 Endpoint Configurations\n(URLs, credentials, protocols)" as configs <<endpointconfiguration>> #C5CAE9
+  component "51 Certificates\n(TLS + signing)" as certs <<certificate>> #C5CAE9
+  
+  note bottom of configs
+    **Multi-protocol endpoint pattern:**
+    • HTTP/SOAP: url, soapversion, WS-*
+    • MQ: manager, channel, queue
+    • ebMS: CPA, partyid, processspec
+    • FTP: hostname, fileprotocol
+    • All share one table with
+      nullable protocol-specific columns
+  end note
+}
+
+' ============================================================================
+' BOTTOM: Provider Applications
+' ============================================================================
+
+package "Provider Applications\n(receiving backends)" as providers #FCE4EC {
+  component "CBB" as prov_cbb #F8BBD0
+  component "CGS" as prov_cgs #F8BBD0
+  component "CMG" as prov_cmg #F8BBD0
+  component "GEOTAX" as prov_geotax #F8BBD0
+  component "CWIZ" as prov_cwiz #F8BBD0
+  component "CGA" as prov_cga #F8BBD0
+  component "Alfresco\n(DMS)" as prov_alf #F8BBD0
+  component "Corsa\n(DMS)" as prov_corsa #F8BBD0
+  component "External\nDigikoppeling" as prov_dk #F8BBD0
+  component "Other Providers\n(170+ registered)" as prov_other #F8BBD0
+}
+
+' ============================================================================
+' BOTTOM RIGHT: Logging & Audit
+' ============================================================================
+
+package "Logging & Audit" as logging #F3E5F5 {
+  database "logservicerequest\n(334 entries)" as log_req #E1BEE7
+  database "logroute\n(336 hops)" as log_route #E1BEE7
+  database "logaction\n(3236 actions)" as log_action #E1BEE7
+  database "logmessage\n(1073 payloads)" as log_msg #E1BEE7
+  database "revinfo\n(1943 config changes)" as revinfo #E1BEE7
+  
+  note bottom of log_req
+    **Observed Traffic Patterns:**
+    • ZGS → ConfigurationTestService → CGS (58 calls)
+    • ZGS → TestAxiomAsynService (52 calls)
+    • ZGS_SSL → StUFOntvangAsynchroonBG → CBB (49 calls)
+    • CLIQ → SimplerInvoicingService → CGS (32 calls)
+    • FrontOffice → StUFOntvangAsynchroonBG → CGS (32 calls)
+  end note
+}
+
+' ============================================================================
+' FLOW ARROWS: The Complete Message Path
+' ============================================================================
+
+' Consumer → Authorization
+zgs_ssl -[#2E7D32]-> auth : 1. Request\nservice
+zgs -[#2E7D32]-> auth
+ibz -[#2E7D32]-> auth
+cwiz -[#2E7D32]-> auth
+fo -[#2E7D32]-> auth
+cipers -[#2E7D32]-> auth
+corsa -[#2E7D32]-> auth
+cliq -[#2E7D32]-> auth
+
+' Authorization → Service Resolution
+auth -[#E65100]-> svc_catalog : 2. Resolve\nservice rules
+
+' Service → Wiring
+svc_catalog -[#E65100]-> scr : 3. Find\nimplementation
+
+' Wiring → Message Processing
+scr -[#E65100]-> matcher : 4. Match\nmessage format
+
+' Message → Validation
+matcher -[#E65100]-> validator : 5. Validate\n(if active)
+
+' Validation → Transformation
+validator -[#E65100]-> transformer : 6. Transform\n(if needed)
+
+' Transformation → Routing
+transformer -[#E65100]-> router : 7. Route to\nchannel
+
+' Routing → Orchestration (optional)
+router -[#9E9E9E]..> orchestrator : 7b. Multi-step\n(optional)
+
+' Routing → Adapters
+router -[#1565C0]-> ws_out : 8a. SOAP call
+router -[#1565C0]-> java_out : 8b. Java call
+router -[#1565C0]-> http_adapt : 8c. HTTP call
+router -[#1565C0]-> abap_adapt : 8d. SAP call
+router -[#1565C0]-> mq_adapt : 8e. MQ message
+router -[#1565C0]-> ftp_adapt : 8f. File transfer
+router -[#1565C0]-> ebms_adapt : 8g. Digikoppeling
+
+' Adapters → Endpoints
+ws_out -[#1565C0]-> endpoints
+java_out -[#1565C0]-> endpoints
+http_adapt -[#1565C0]-> endpoints
+
+' Endpoints → Config
+endpoints -[#1565C0]-> configs : Physical\nconnection\ndetails
+configs -[#1565C0]..> certs : TLS/signing
+
+' Endpoints → Providers
+endpoints -[#AD1457]-> prov_cbb : 9. Deliver\nmessage
+endpoints -[#AD1457]-> prov_cgs
+endpoints -[#AD1457]-> prov_cmg
+endpoints -[#AD1457]-> prov_geotax
+endpoints -[#AD1457]-> prov_cwiz
+endpoints -[#AD1457]-> prov_alf
+endpoints -[#AD1457]-> prov_dk
+endpoints -[#AD1457]-> prov_other
+
+' Logging (dotted - happens at each step)
+auth ..[#7B1FA2].> log_req : Log\nrequest
+router ..[#7B1FA2].> log_route : Log\nroute
+validator ..[#7B1FA2].> log_action : Log\nactions
+transformer ..[#7B1FA2].> log_msg : Log\npayloads
+
+' Response flow (back)
+prov_cbb -[#AD1457]--> transformer : 10. Response\n(reverse path)
+prov_cgs -[#AD1457]--> transformer
+prov_cmg -[#AD1457]--> transformer
+
+@enduml
+
+@startuml cgs-9-domains-flow
+' ============================================================================
+' CGS 9 Domain Internal Architecture
+' Shows how the 9 schema domains interact within CGS
+' Based on: cgs-schema-docs.md domain narrative + real DB data
+' ============================================================================
+
+title **CGS — 9 Domain Architecture & Internal Data Flows**\n//How the database domains collaborate to route messages//
+
+skinparam backgroundColor #FEFEFE
+skinparam packageStyle rectangle
+skinparam defaultFontSize 10
+
+' ============================================================================
+' DOMAIN 1: Service Bus Core
+' ============================================================================
+package "Domain 1: Service Bus Core\n(Heart of CGS)" as d1 #FFFDE7 {
+  rectangle "servicedefinition\n220 services" as sd #FFF59D
+  rectangle "serviceusage\n660 subscriptions" as su #FFF59D
+  rectangle "servicecomponentrelation\n5852 wirings" as scr #FFF59D
+  rectangle "channeldefinition\n532 channels" as cd #FFF59D
+  rectangle "orchestrationdefinition\n34 workflows" as od #FFF59D
+  
+  su -down-> sd : subscribes to
+  sd -down-> scr : wired by
+  sd -down-> cd : routed by
+  cd -right-> od : may use\norchestration
+}
+
+' ============================================================================
+' DOMAIN 2: Application
+' ============================================================================
+package "Domain 2: Application\n(Who is connected)" as d2 #E8F5E9 {
+  rectangle "application\n173 apps" as app #C8E6C9
+  rectangle "applicationopeningperiod\n(availability)" as aop #C8E6C9
+  rectangle "certificate\n51 certs" as cert #C8E6C9
+  
+  app -down-> aop : has hours
+  app -down-> cert : owns cert
+}
+
+' ============================================================================
+' DOMAIN 3: Adapter / Endpoint
+' ============================================================================
+package "Domain 3: Adapter / Endpoint\n(How to connect)" as d3 #E3F2FD {
+  rectangle "adapterdefinition\n149 types" as ad #BBDEFB
+  rectangle "adapterendpoint\n314 instances" as ae #BBDEFB
+  rectangle "endpointconfiguration\n491 configs" as ec #BBDEFB
+  rectangle "adaptersetting\n(key-value)" as as_ #BBDEFB
+  
+  ad -down-> ae : instantiated as
+  ae -down-> ec : configured by
+  ec -down-> as_ : extended by
+}
+
+' ============================================================================
+' DOMAIN 4: Message / Transformation
+' ============================================================================
+package "Domain 4: Message / Transformation\n(What format)" as d4 #FFF3E0 {
+  rectangle "messagedefinition\n2065 types" as md #FFE0B2
+  rectangle "elementdefinition\n(XML elements)" as ed #FFE0B2
+  rectangle "transformationdefinition\n993 rules" as td #FFE0B2
+  rectangle "xsltcontent\n(stylesheets)" as xslt #FFE0B2
+  
+  md -down-> ed : defines elements
+  md -right-> td : source format
+  md -right-> td : target format
+  td -down-> xslt : uses stylesheet
+}
+
+' ============================================================================
+' DOMAIN 5: Validation
+' ============================================================================
+package "Domain 5: Validation\n(Is it correct?)" as d5 #F3E5F5 {
+  rectangle "validator\n(Java classes)" as v #E1BEE7
+  rectangle "validatoraction\n(methods)" as va #E1BEE7
+  rectangle "validatoractioncfg" as vac #E1BEE7
+  rectangle "messagevalidation" as mv #E1BEE7
+  rectangle "messagevalidationaction" as mva #E1BEE7
+  rectangle "messagevalidationactioncfg" as mvac #E1BEE7
+  
+  v -down-> va : has actions
+  va -down-> vac : configured by
+  mv -right-> mva : triggers
+  mva -right-> mvac : configured by
+}
+
+' ============================================================================
+' DOMAIN 6: CMIS
+' ============================================================================
+package "Domain 6: CMIS\n(Document Management)" as d6 #E0F2F1 {
+  rectangle "cmisproviderconfiguration\n(vendor types)" as cpc #B2DFDB
+  rectangle "cmisproviderproperty\n(28 props)" as cpp #B2DFDB
+  rectangle "cmisconsumerproperty\n(23 props)" as ccp #B2DFDB
+  rectangle "cmisrepository\n(instances)" as cr #B2DFDB
+  rectangle "cmispropertymapping\n(14 mappings)" as cpm #B2DFDB
+  
+  cpc -down-> cpp : has properties
+  cpc -down-> cr : configured in
+  cpm -up-> ccp : consumer side
+  cpm -up-> cpp : provider side
+  cpm -left-> cr : scoped to repo
+}
+
+' ============================================================================
+' DOMAIN 7: ebMS
+' ============================================================================
+package "Domain 7: ebMS / Digikoppeling\n(Government messaging)" as d7 #FBE9E7 {
+  rectangle "ebmscpa\n(CPA agreements)" as ecpa #FFCCBC
+  rectangle "ebmsmessage\n(message envelopes)" as em #FFCCBC
+  rectangle "ebmsattachment\n(MIME parts)" as ea #FFCCBC
+  rectangle "ebmssendevent\n(delivery log)" as ese #FFCCBC
+  rectangle "ebmsmapping\n(routing rules)" as emap #FFCCBC
+  
+  ecpa -down-> em : governs
+  em -down-> ea : has attachments
+  em -down-> ese : send tracked
+}
+
+' ============================================================================
+' DOMAIN 8: Logging
+' ============================================================================
+package "Domain 8: Logging\n(What happened?)" as d8 #F3E5F5 {
+  rectangle "logservicerequest\n334 entries" as lsr #CE93D8
+  rectangle "logroute\n336 hops" as lr #CE93D8
+  rectangle "logaction\n3236 actions" as la #CE93D8
+  rectangle "logmessage\n1073 payloads" as lm #CE93D8
+  rectangle "logattachment\n(binary files)" as lat #CE93D8
+  
+  lsr -down-> lr : contains routes
+  lr -down-> la : contains actions
+  lsr -right-> lm : request/response
+  lr -right-> lm : transformed msgs
+  lm -down-> lat : has attachments
+}
+
+' ============================================================================
+' DOMAIN 9: System & Audit
+' ============================================================================
+package "Domain 9: System & Audit\n(Configuration history)" as d9 #ECEFF1 {
+  rectangle "cgssetting\n(global config)" as cs #CFD8DC
+  rectangle "revinfo\n1943 revisions" as ri #CFD8DC
+  rectangle "*_aud tables\n(6 audit tables)" as aud #CFD8DC
+  
+  ri -down-> aud : tracks changes
+}
+
+' ============================================================================
+' CROSS-DOMAIN RELATIONSHIPS (the key connections)
+' ============================================================================
+
+' Domain 1 ↔ Domain 2 (Application)
+app -[#2E7D32,bold]-> su : consumer subscribes\n(660 authorizations)
+app -[#2E7D32,bold]-> cd : provider filters\n(routing target)
+
+' Domain 1 ↔ Domain 3 (Adapter/Endpoint)
+scr -[#1565C0,bold]-> ad : service uses\nadapter type
+cd -[#1565C0,bold]-> ae : channel routes\nto endpoint
+app -[#1565C0]-> ae : endpoint bound\nto application
+
+' Domain 1 ↔ Domain 4 (Message)
+scr -[#E65100,bold]-> md : request/response/\nfault format
+cd -[#E65100,bold]-> md : filter by\nmessage type
+cd -[#E65100,bold]-> td : apply\ntransformation
+
+' Domain 2 ↔ Domain 3 (Certificate)
+cert -[#1565C0]-> ec : TLS + signing\ncertificates
+
+' Domain 3 ↔ Domain 6 (CMIS)
+ae -[#00695C]-> cr : CMIS repo\nuses endpoint
+
+' Domain 2 ↔ Domain 7 (ebMS)
+cert -[#BF360C]-> ecpa : CPA signing\ncertificate
+
+' Domain 4 ↔ Domain 5 (Validation)
+ed -[#6A1B9A]-> mv : element bound\nto validator
+
+' Domain 1 ↔ Domain 8 (Logging)
+sd -[#7B1FA2,dashed]-> lsr : logs service\ncalls
+ae -[#7B1FA2,dashed]-> lr : logs route\nhops
+
+' Domain 9 audits config changes
+ae -[#546E7A,dotted]-> aud : audited
+ec -[#546E7A,dotted]-> aud : audited
+cd -[#546E7A,dotted]-> aud : audited
+app -[#546E7A,dotted]-> aud : audited
+
+note bottom of d1
+  **The runtime lookup chain:**
+  serviceusage → servicedefinition →
+  channeldefinition → adapterendpoint →
+  endpointconfiguration
+  
+  **All configuration is pre-defined.**
+  CGS is stateless at runtime.
+end note
+
+note right of d3
+  **Adapter Protocol Distribution:**
+  WEBSERVICE: 99 (67%)
+  JAVA: 23 (15%)
+  HTTP: 10 (7%)
+  ABAP: 4 (3%)
+  UNIFACE: 4 (3%)
+  MQ: 3 (2%)
+  FTP: 2 (1%)
+  ebMS: 2 (1%)
+  REST: 1 (<1%)
+  FILE: 1 (<1%)
+end note
+
+note right of d6
+  **Domain Isolation:**
+  CMIS, ebMS, and Validation
+  connect only through Application
+  and Adapter/Endpoint domains.
+  
+  They can be added/removed
+  without affecting core routing.
+end note
+
+@enduml
+
+@startuml cgs-message-flow-sequence
+' ============================================================================
+' CGS Complete Message Flow — Sequence Diagram
+' Based on: Real log data + domain narrative from cgs-schema-docs.md
+' Shows every database table touched during a service call
+' ============================================================================
+
+title **CGS Message Flow — Every Step & Table Touched**\nBased on production log analysis: ZGS_SSL → StUFOntvangAsynchroonBG → CBB (49 calls observed)
+
+skinparam sequenceMessageAlignment center
+skinparam maxMessageSize 200
+
+actor "ZGS_SSL\n(Consumer)" as consumer
+participant "CGS\nService Bus" as cgs
+
+box "Domain 1: Service Bus Core" #FFFDE7
+  database "serviceusage\n(660 rows)" as su
+  database "servicedefinition\n(220 rows)" as sd
+  database "servicecomponentrelation\n(5852 rows)" as scr
+  database "channeldefinition\n(532 rows)" as cd
+end box
+
+box "Domain 4: Message/Transform" #FFF3E0
+  database "messagedefinition\n(2065 rows)" as md
+  participant "XSLT Engine" as xslt
+  database "transformationdefinition\n(993 rows)" as td
+end box
+
+box "Domain 3: Adapter/Endpoint" #E3F2FD
+  database "adapterdefinition\n(149 types)" as ad
+  database "adapterendpoint\n(314 instances)" as ae
+  database "endpointconfiguration\n(491 configs)" as ec
+end box
+
+box "Domain 8: Logging" #F3E5F5
+  database "logservicerequest" as lsr
+  database "logroute" as lr
+  database "logaction" as la
+  database "logmessage" as lm
+end box
+
+actor "CBB\n(Provider)" as provider
+
+== Step 1: Authorization ==
+
+consumer -> cgs : SOAP Request\n"StUFOntvangAsynchroonBG"
+activate cgs
+
+cgs -> su : SELECT * FROM serviceusage\nWHERE application_id = <ZGS_SSL>\nAND servicedefinition_id = <StUFOntvangAsynchroonBG>
+su --> cgs : ✓ **Row found** (1 of 660)\nZGS_SSL is authorized
+
+cgs -> lsr : INSERT logservicerequest\n(consumer='ZGS_SSL', servicename='StUFOntvangAsynchroonBG')
+
+== Step 2: Service Resolution ==
+
+cgs -> sd : SELECT * FROM servicedefinition\nWHERE name = 'StUFOntvangAsynchroonBG'
+sd --> cgs : handling=**ASYN**, qos=**EXACTLYONCE**,\nstatus=ACTIVE, validation=false
+
+cgs -> la : INSERT logaction\n(name='ResolveService', result='SUCCESS')
+
+== Step 3: Service Component Wiring ==
+
+cgs -> scr : SELECT * FROM servicecomponentrelation\nWHERE servicedefinition_id = <id>
+scr --> cgs : adapterdefinition_id, orchestrationdefinition_id,\nmessagedefinitionrequest_id, messagedefinitionresponse_id
+
+cgs -> ad : SELECT * FROM adapterdefinition\nWHERE id = <adapter_id>
+ad --> cgs : name='WEBSERVICEOUTADAPTER',\ntype=WEBSERVICE, direction=OUTGOING
+
+== Step 4: Message Matching ==
+
+cgs -> md : SELECT * FROM messagedefinition\nWHERE namespace = 'http://www.egem.nl/StUF/sector/bg/0204'\nAND messagekey LIKE '%kennisgevingsBericht%'
+md --> cgs : messagedefinition_id = <id>\n(1 of 2065 message types)
+
+cgs -> la : INSERT logaction\n(name='MatchMessage', result='SUCCESS')
+
+cgs -> lm : INSERT logmessage\n(messagekey='kennisgevingsBericht',\nmessage=<full_xml_payload>)
+
+== Step 5: Transformation (if needed) ==
+
+cgs -> td : SELECT * FROM transformationdefinition\nWHERE messagedefinitionoriginal_id = <source>\n(1 of 993 transformations)
+td --> cgs : XSLT stylesheet content
+
+cgs -> xslt : Apply XSLT transformation\nStUF BG 0204 → StUF BG 0210
+activate xslt
+xslt --> cgs : Transformed message
+deactivate xslt
+
+cgs -> la : INSERT logaction\n(name='TransformRequest', result='SUCCESS')
+cgs -> lm : INSERT logmessage\n(messagekey='transformed_request')
+
+== Step 6: Dynamic Channel Routing ==
+
+cgs -> cd : SELECT * FROM channeldefinition\nWHERE servicedefinition_id = <id>\nAND filterprovidingapplication_id = <CBB>\nAND active = true
+cd --> cgs : **1 of 29 channels** for this service\nadapterendpoint_id, requesttransformation_id
+
+note over cd
+  **StUFOntvangAsynchroonBG has 29 channels!**
+  Routes to 22 different endpoints
+  across 19 different provider applications
+  CGS selects the right channel based on:
+  • filterprovidingapplication_id (which backend?)
+  • filtermessagedefinition_id (what message type?)
+  • filterxpath (content-based routing)
+  • filterconsumerorganisation
+end note
+
+cgs -> la : INSERT logaction\n(name='SelectChannel', result='SUCCESS')
+
+== Step 7: Endpoint Resolution ==
+
+cgs -> ae : SELECT * FROM adapterendpoint\nWHERE id = <channel.adapterendpoint_id>
+ae --> cgs : name='CBB', adapterdefinition_id,\napplicationalias_id=<CBB_app>
+
+cgs -> ec : SELECT * FROM endpointconfiguration\nWHERE adapterendpoint_id = <ae.id>
+ec --> cgs : url='https://cbb.example.nl/StUF',\nsoapversion='1.1', enablewssecurity=true
+
+cgs -> lr : INSERT logroute\n(logservicerequest_id, provider='CBB',\nadapterendpointname='CBB')
+
+== Step 8: Send to Provider ==
+
+cgs -> provider : SOAP POST to CBB\nhttps://cbb.example.nl/StUF\n<StUF-BG kennisgevingsBericht>
+activate provider
+
+cgs -> la : INSERT logaction\n(name='SendToProvider', result='SUCCESS',\nduration=125)
+
+provider --> cgs : SOAP Response\n<bevestigingsBericht>
+deactivate provider
+
+cgs -> la : INSERT logaction\n(name='ReceiveResponse', result='SUCCESS')
+cgs -> lm : INSERT logmessage\n(messagekey='bevestigingsBericht')
+
+== Step 9: Response Transformation (reverse) ==
+
+cgs -> td : SELECT * FROM transformationdefinition\nWHERE messagedefinitionoriginal_id = <resp_format>
+
+cgs -> xslt : Apply reverse XSLT\nStUF BG 0210 → StUF BG 0204
+activate xslt
+xslt --> cgs : Transformed response
+deactivate xslt
+
+cgs -> lm : INSERT logmessage\n(messagekey='transformed_response')
+
+== Step 10: Update Logs & Return ==
+
+cgs -> lr : UPDATE logroute SET\nresponsetimestamp=NOW(), status='SUCCESS'
+cgs -> lsr : UPDATE logservicerequest SET\nresponsetimestamp=NOW(), status='SUCCESS'
+
+cgs --> consumer : SOAP Response\n<bevestigingsBericht>
+deactivate cgs
+
+note over consumer, provider
+  **Complete Audit Trail Created:**
+  • 1 logservicerequest (who called what)
+  • 1 logroute (which backend answered)
+  • 6-7 logaction entries (every processing step)
+  • 3-4 logmessage entries (original request, transformed request,
+    raw response, transformed response)
+  
+  **Tables touched in this single request: 12 out of 46**
+  serviceusage → servicedefinition → servicecomponentrelation →
+  adapterdefinition → messagedefinition → transformationdefinition →
+  channeldefinition → adapterendpoint → endpointconfiguration →
+  logservicerequest → logroute → logaction → logmessage
+end note
+
+@enduml
+
+@startuml cgs-stuf-routing-detail
+' ============================================================================
+' StUF Message Routing Detail
+' The most complex service: StUFOntvangAsynchroonBG
+' 29 channels, 22 endpoints, 19 providers
+' ============================================================================
+
+title **StUF-BG Asynchronous Message Routing**\nStUFOntvangAsynchroonBG: 29 channels → 22 endpoints → 19 providers\n//Most complex service in CGS//
+
+skinparam componentStyle rectangle
+
+package "Consumer Applications\n(who sends StUF-BG messages)" as senders #E8F5E9 {
+  component "ZGS_SSL" as c1
+  component "FrontOffice" as c2
+  component "CGA" as c3
+  component "CIPERS" as c4
+  component "KVK" as c5
+  component "BGTAB" as c6
+  component "CBB" as c7
+}
+
+package "CGS Service Bus\nStUFOntvangAsynchroonBG" as cgs #FFF3E0 {
+  
+  component "Service\nAuthorization" as auth
+  
+  package "Message Matching\n(StUF 0301/0204)" as matching {
+    component "Match by\nnamespace +\nmessagekey" as match1
+    component "Match by\nXPath filter\n(entiteittype)" as match2
+  }
+  
+  package "StUF Version Transformation" as transform {
+    component "StUF BG 0204\n→ StUF BG 0210" as t1
+    component "StUF BG 0210\n→ StUF BG 0204" as t2
+    component "StUF 0301\n→ StUF 0204" as t3
+  }
+  
+  package "29 Dynamic Routing Channels" as channels {
+    component "Channel Filter:\nfilterprovidingapplication_id\n= <target_app>" as cf
+    
+    note bottom of cf
+      **Each channel targets a different provider:**
+      The same StUF-BG message is fanned out
+      to all registered providers.
+      
+      Channel selection criteria:
+      1. Which provider should receive this?
+      2. Does the message match the filter?
+      3. Is the channel active?
+    end note
+  }
+}
+
+package "19 Provider Applications\n(who receives StUF-BG)" as receivers #FCE4EC {
+  component "CBB\n(Burgerbewaking)" as p1
+  component "CGS\n(Self)" as p2
+  component "CMG\n(Gemeentebeheer)" as p3
+  component "GEOTAX\n(Geo/Belasting)" as p4
+  component "CWIZ" as p5
+  component "CGA\n(Geo/Adres)" as p6
+  component "CZA\n(Zaakbeheer)" as p7
+  component "CIPERS" as p8
+  component "iBurgerzaken" as p9
+  component "iSamenleving" as p10
+  component "CML" as p11
+  component "WebNext" as p12
+  component "Corsa" as p13
+  component "SquitXO" as p14
+  component "Alfresco" as p15
+  component "6 more\nproviders..." as p16
+}
+
+' Flow
+c1 -down-> auth
+c2 -down-> auth
+c3 -down-> auth
+c4 -down-> auth
+c5 -down-> auth
+
+auth -down-> match1 : serviceusage check
+match1 -down-> match2
+match2 -down-> transform : if format conversion needed
+transform -down-> cf : route to matching channels
+
+cf -down-> p1 : Channel 1
+cf -down-> p2 : Channel 2
+cf -down-> p3 : Channel 3
+cf -down-> p4 : Channel 4
+cf -down-> p5 : Channel 5
+cf -down-> p6 : Channel 6
+cf -down-> p7 : Channel 7
+cf -down-> p8 : Channel 8
+cf -down-> p9 : Channel 9
+cf -down-> p10 : Channel 10
+cf -down-> p11 : Channel 11
+cf -down-> p12 : Channel 12
+cf -down-> p13 : Channel 13
+cf -down-> p14 : Channel 14
+cf -down-> p15 : Channel 15
+cf -down-> p16 : Channels 16-29
+
+note right of channels
+  **Fan-out Pattern:**
+  When a citizen's data changes (BG mutation),
+  CGS broadcasts the StUF-BG kennisgeving
+  to ALL registered systems.
+  
+  Each system gets the message through
+  its own dedicated channel with:
+  • Its own adapter endpoint
+  • Its own endpoint configuration
+  • Optionally its own transformation
+  
+  **This is why 29 channels exist
+  for a single service!**
+end note
+
+note bottom of transform
+  **993 total transformations**
+  
+  StUF versions in play:
+  • StUF 0204 (legacy)
+  • StUF 0210 (Centric variant)
+  • StUF 0301 (current standard)
+  
+  CGS transforms between versions
+  so each provider receives the
+  format it understands.
+end note
+
+@enduml

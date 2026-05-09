@@ -1,0 +1,876 @@
+@startuml messagedefinition-er-diagram
+' ============================================================================
+' DIAGRAM 1: Entity-Relationship Diagram - Message Definition as Hub
+' ============================================================================
+' Shows messagedefinition as the central hub with all its relationships
+' Best for: Understanding table structure and foreign key relationships
+
+!define PK <b><color:red>PK</color></b>
+!define FK <color:blue>FK</color>
+!define NOT_NULL <color:green>●</color>
+
+skinparam linetype ortho
+skinparam packageStyle rectangle
+
+entity "messagedefinition" as msg <<Hub Table - 32 rows>> #LightYellow {
+  PK id : numeric
+  --
+  NOT_NULL messagekey : varchar(50) <<unique>>
+  NOT_NULL namespace : varchar
+  soapaction : varchar
+  elementvalue : varchar
+  filterxpath : varchar
+  NOT_NULL validationactive : boolean
+  configurationname : varchar
+  description : varchar
+  NOT_NULL factorysetting : boolean
+  changecounter : numeric
+}
+
+entity "elementdefinition" as elem {
+  PK id : numeric
+  --
+  FK messagedefinition_id
+  FK parent_id (self)
+  name : varchar
+  xpath : varchar
+}
+
+entity "transformationdefinition" as trans {
+  PK id : numeric
+  --
+  FK messagedefinitionoriginal_id
+  FK messagedefinitiontarget_id
+  FK content_id
+}
+
+entity "xsltcontent" as xslt {
+  PK id : numeric
+  --
+  content : text
+  description : varchar
+}
+
+entity "channeldefinition" as channel {
+  PK id : numeric
+  --
+  FK servicedefinition_id
+  FK filtermessagedefinition_id
+  FK adapterendpoint_id
+  FK requesttransformation_id
+  FK responsetransformation_id
+  filterxpath : varchar(4000)
+  active : boolean
+}
+
+entity "servicecomponentrelation" as scr {
+  PK id : numeric
+  --
+  FK servicedefinition_id
+  FK adapterdefinition_id
+  FK messagedefinitionrequest_id
+  FK messagedefinitionresponse_id
+  FK messagedefinitionfault_id
+}
+
+entity "servicedefinition" as svc <<220 rows>> #LightBlue {
+  PK id : numeric
+  --
+  name : varchar(50)
+  handling : varchar (SYN/ASYN)
+  status : varchar
+  validation : boolean
+}
+
+entity "logmessage" as log {
+  PK id : numeric
+  --
+  messagekey : varchar
+  namespace : varchar
+  message : text <<SOAP/XML>>
+  elementvalue : varchar
+}
+
+' Relationships with cardinality
+msg ||--o{ elem : "contains\nelements"
+msg ||--o{ trans : "source format"
+msg ||--o{ trans : "target format"
+trans }o--|| xslt : "uses XSLT"
+msg ||--o{ channel : "filter by"
+msg ||--o{ scr : "request\nmessage"
+msg ||--o{ scr : "response\nmessage"
+msg ||--o{ scr : "fault\nmessage"
+scr }o--|| svc : "defines"
+channel }o--|| svc : "routes to"
+msg ||..o{ log : "logged as\n(messagekey,\nnamespace)"
+
+note right of msg
+  **Message Matching Logic:**
+  1. messagekey (primary identifier)
+  2. namespace (XML namespace)
+  3. soapaction (SOAP 1.1/1.2)
+  4. elementvalue (root element)
+  5. filterxpath (XPath expression)
+  
+  **32 message types** define the
+  service bus message vocabulary
+end note
+
+note bottom of trans
+  **5 transformation rules**
+  Convert message formats
+  using XSLT stylesheets
+end note
+
+@enduml
+
+@startuml messagedefinition-sequence
+' ============================================================================
+' DIAGRAM 2: Sequence Diagram - Message Matching & Processing Flow
+' ============================================================================
+' Shows runtime behavior: how incoming messages are matched to definitions
+' Best for: Understanding processing logic and decision flow
+
+title Message Matching & Processing Flow\nHow messagedefinition drives message routing
+
+actor "Consumer\nApplication" as consumer
+participant "CGS\nService Bus" as bus
+database "messagedefinition\ntable" as msgdef
+participant "Message\nMatcher" as matcher
+participant "XPath\nEvaluator" as xpath
+participant "Transformation\nEngine" as xform
+database "transformationdefinition\ntable" as transdef
+participant "Validator" as validator
+participant "Channel\nRouter" as router
+database "channeldefinition\ntable" as channel
+
+consumer -> bus : SOAP Request\n<soapenv:Envelope>
+activate bus
+
+bus -> matcher : Parse SOAP message
+activate matcher
+
+matcher -> msgdef : **Query 1: Match by SOAPAction**\nSELECT * FROM messagedefinition\nWHERE soapaction = 'urn:example:action'
+msgdef --> matcher : 0-1 matches
+
+alt SOAPAction match found
+  matcher -> matcher : Message identified
+else No SOAPAction match
+  matcher -> msgdef : **Query 2: Match by namespace + messagekey**\nSELECT * FROM messagedefinition\nWHERE namespace = 'http://example.com/ns'\n  AND messagekey = 'GetDataRequest'
+  msgdef --> matcher : 0-1 matches
+  
+  alt Still no match
+    matcher -> xpath : Extract root element
+    xpath -> msgdef : **Query 3: Match by elementvalue**\nSELECT * FROM messagedefinition\nWHERE elementvalue = 'GetData'
+    msgdef --> matcher : 0-1 matches
+  end
+end
+
+alt Message matched (messagedefinition_id found)
+  matcher --> bus : messagedefinition_id = 42
+  deactivate matcher
+  
+  bus -> validator : Validate message structure
+  activate validator
+  validator -> msgdef : Check validationactive flag
+  msgdef --> validator : validationactive = true
+  validator -> validator : Validate against schema
+  validator --> bus : ✓ Valid
+  deactivate validator
+  
+  bus -> router : Find routing channel
+  activate router
+  router -> channel : **Query: Find active channel**\nSELECT * FROM channeldefinition\nWHERE servicedefinition_id = X\n  AND filtermessagedefinition_id = 42\n  AND active = true
+  channel --> router : channeldefinition_id = 15
+  
+  router -> channel : Get transformations
+  channel --> router : requesttransformation_id = 3
+  
+  router -> transdef : **Query: Load transformation**\nSELECT td.*, xc.content\nFROM transformationdefinition td\nJOIN xsltcontent xc ON td.content_id = xc.id\nWHERE td.messagedefinitionoriginal_id = 42\n  AND td.id = 3
+  transdef --> router : XSLT stylesheet
+  
+  router -> xform : Transform message
+  activate xform
+  xform -> xform : Apply XSLT\n(original format → target format)
+  xform --> router : Transformed message
+  deactivate xform
+  
+  router --> bus : Route to adapter endpoint
+  deactivate router
+  
+  bus --> consumer : 200 OK
+  deactivate bus
+  
+else No message match found
+  matcher --> bus : ERROR: Unknown message type
+  deactivate matcher
+  bus --> consumer : 500 Internal Server Error\n<faultstring>Unknown message</faultstring>
+  deactivate bus
+end
+
+note over msgdef
+  **Critical Hub Table**
+  messagedefinition acts as the
+  "message type registry" that
+  enables dynamic message routing
+end note
+
+note over transdef
+  **Message Transformation**
+  Links source → target message
+  definitions via XSLT content
+  (5 transformations configured)
+end note
+
+@enduml
+
+@startuml messagedefinition-class-diagram
+' ============================================================================
+' DIAGRAM 3: Class Diagram - Message Layer Domain Model
+' ============================================================================
+' Shows the object-oriented view of the message subsystem
+' Best for: Software design, understanding business logic
+
+title CGS Message Layer - Domain Model
+
+package "Message Layer" <<Domain>> {
+  
+  class MessageDefinition <<Entity>> {
+    - id : Long
+    - messagekey : String
+    - namespace : String
+    - soapaction : String
+    - elementvalue : String
+    - filterxpath : String
+    - validationactive : boolean
+    - configurationname : String
+    - description : String
+    --
+    + matches(soapMessage : SOAPMessage) : boolean
+    + getValidationRules() : List<ValidationRule>
+    + getXPathFilter() : XPath
+    + isFactory() : boolean
+  }
+  
+  class ElementDefinition <<Entity>> {
+    - id : Long
+    - name : String
+    - xpath : String
+    - datatype : String
+    - required : boolean
+    --
+    + validate(element : Element) : ValidationResult
+    + getChildren() : List<ElementDefinition>
+    + getParent() : ElementDefinition
+  }
+  
+  class TransformationDefinition <<Entity>> {
+    - id : Long
+    --
+    + transform(message : Message) : Message
+    + getOriginalFormat() : MessageDefinition
+    + getTargetFormat() : MessageDefinition
+    + getXSLTContent() : XSLTContent
+  }
+  
+  class XSLTContent <<ValueObject>> {
+    - id : Long
+    - content : String
+    - description : String
+    --
+    + compile() : Templates
+    + validate() : boolean
+  }
+  
+  class MessageMatcher <<Service>> {
+    --
+    + findDefinition(soapAction : String) : MessageDefinition
+    + findDefinition(namespace : String, key : String) : MessageDefinition
+    + findByElement(element : String) : MessageDefinition
+    + evaluateXPathFilter(xpath : String, message : Document) : boolean
+  }
+  
+  class MessageValidator <<Service>> {
+    --
+    + validate(message : Message, definition : MessageDefinition) : ValidationResult
+    + validateSchema(message : Message) : boolean
+    + validateBusinessRules(message : Message) : List<Error>
+  }
+  
+  class TransformationEngine <<Service>> {
+    - cache : Map<Long, Templates>
+    --
+    + transform(message : Message, transformation : TransformationDefinition) : Message
+    + clearCache() : void
+  }
+  
+  class LogMessage <<Entity>> {
+    - id : Long
+    - messagekey : String
+    - namespace : String
+    - message : String
+    - timestamp : Timestamp
+    --
+    + getPayload() : Document
+    + matches(definition : MessageDefinition) : boolean
+  }
+}
+
+package "Service Layer" <<Domain>> {
+  class ServiceComponentRelation <<Entity>> {
+    - id : Long
+    --
+    + getRequestMessage() : MessageDefinition
+    + getResponseMessage() : MessageDefinition
+    + getFaultMessage() : MessageDefinition
+    + getService() : ServiceDefinition
+    + getAdapter() : AdapterDefinition
+  }
+  
+  class ChannelDefinition <<Entity>> {
+    - id : Long
+    - filterxpath : String
+    - active : boolean
+    --
+    + matches(message : Message, application : Application) : boolean
+    + getFilterMessage() : MessageDefinition
+    + getRequestTransformation() : TransformationDefinition
+    + getResponseTransformation() : TransformationDefinition
+    + route(message : Message) : AdapterEndpoint
+  }
+}
+
+' Relationships
+MessageDefinition "1" *-- "0..*" ElementDefinition : contains >
+MessageDefinition "1" -- "0..*" TransformationDefinition : source <
+MessageDefinition "1" -- "0..*" TransformationDefinition : target <
+TransformationDefinition "1" --> "1" XSLTContent : uses >
+ElementDefinition "parent\n1" o-- "children\n0..*" ElementDefinition : hierarchy
+
+MessageMatcher ..> MessageDefinition : <<uses>>
+MessageValidator ..> MessageDefinition : <<uses>>
+MessageValidator ..> ElementDefinition : <<uses>>
+TransformationEngine ..> TransformationDefinition : <<uses>>
+
+ServiceComponentRelation "1" --> "0..1" MessageDefinition : request >
+ServiceComponentRelation "1" --> "0..1" MessageDefinition : response >
+ServiceComponentRelation "1" --> "0..1" MessageDefinition : fault >
+
+ChannelDefinition "1" --> "0..1" MessageDefinition : filter by >
+ChannelDefinition "1" --> "0..1" TransformationDefinition : request xform >
+ChannelDefinition "1" --> "0..1" TransformationDefinition : response xform >
+
+LogMessage ..|> MessageDefinition : <<matches by>>\nmessagekey,\nnamespace
+
+note top of MessageDefinition
+  **Message Type Registry (32 types)**
+  
+  Examples:
+  • messagekey="StUFBeantwoordVraag"
+    namespace="http://www.egem.nl/StUF/sector/bg/0310"
+    
+  • messagekey="GetZaak"
+    soapaction="http://schemas.example.nl/zaak/GetZaak"
+    
+  Each definition acts as a "schema" that
+  describes expected message structure
+end note
+
+note bottom of TransformationEngine
+  **XSLT-based Message Transformation**
+  
+  Caches compiled XSLT templates
+  for performance (5 transformations)
+  
+  Example transformation:
+  StUF 3.10 → StUF 2.04
+end note
+
+note right of MessageMatcher
+  **Multi-Strategy Matching**
+  
+  Strategies (in order):
+  1. SOAPAction header
+  2. Namespace + MessageKey
+  3. Root element name
+  4. XPath filter evaluation
+  
+  First match wins
+end note
+
+@enduml
+
+@startuml messagedefinition-component
+' ============================================================================
+' DIAGRAM 4: Component Diagram - Message Processing Pipeline
+' ============================================================================
+' Shows the runtime components and their interactions
+' Best for: Deployment, understanding system architecture
+
+title Message Processing Pipeline Architecture\nmessagedefinition as the Configuration Heart
+
+package "CGS Service Bus" as cgs {
+  
+  component "SOAP Parser\n[Apache Axiom]" as parser
+  component "Message Matcher\n[Java]" as matcher
+  database "MessageDefinition Cache\n[Ehcache]" as msgdef_cache
+  component "Message Validator\n[Java]" as validator
+  component "XSLT Transformer\n[Saxon-HE]" as transformer
+  component "Channel Router\n[Java]" as router
+  database "XSLT Cache\n[Ehcache]" as xslt_cache
+}
+
+database "PostgreSQL\nigp_ontwikkel_cgs_owner" as db
+
+package "Adapter Layer" as adapters {
+  component "HTTP Adapter\n[HttpClient]" as http_adapter
+  component "WebService Adapter\n[Axis2]" as ws_adapter
+  component "MQ Adapter\n[IBM MQ]" as mq_adapter
+}
+
+parser --> matcher : Parsed message\n(SOAPMessage)
+matcher --> msgdef_cache : Query\n(SELECT * FROM messagedefinition)
+msgdef_cache --> db : Load on startup\n(32 rows)
+
+matcher --> validator : messagedefinition_id\n(Long)
+validator --> db : Load validation rules\n(elementdefinition)
+
+validator --> transformer : Validated message\n(SOAPMessage)
+transformer --> xslt_cache : Get transformation\n(transformationdefinition_id)
+xslt_cache --> db : Load XSLT\n(xsltcontent)
+
+transformer --> router : Transformed message\n(SOAPMessage)
+router --> db : Find channel\n(channeldefinition)
+
+router --> http_adapter : HTTP request
+router --> ws_adapter : SOAP request
+router --> mq_adapter : MQ message
+
+note right of msgdef_cache
+  **Startup Cache Loading**
+  
+  SELECT id, messagekey, namespace,
+         soapaction, elementvalue,
+         filterxpath, validationactive
+  FROM messagedefinition
+  WHERE factorysetting = false
+  
+  Enables O(1) lookups during
+  message processing
+end note
+
+note right of xslt_cache
+  **Lazy XSLT Compilation**
+  
+  SELECT td.*, xc.content
+  FROM transformationdefinition td
+  JOIN xsltcontent xc 
+    ON td.content_id = xc.id
+  WHERE td.id = ?
+  
+  Compiled once, cached forever
+  (or until service restart)
+end note
+
+note bottom of db
+  **Configuration Tables**
+  
+  • messagedefinition (32 rows)
+  • elementdefinition (0 rows - unused)
+  • transformationdefinition (5 rows)
+  • xsltcontent (1 row)
+  • channeldefinition (14 rows)
+  
+  Read-only during runtime
+  Modified via admin UI
+end note
+
+@enduml
+
+@startuml messagedefinition-state
+' ============================================================================
+' DIAGRAM 5: State Diagram - Message Lifecycle
+' ============================================================================
+' Shows state transitions during message processing
+' Best for: Understanding message flow states
+
+title Message Processing State Machine\nDriven by messagedefinition configuration
+
+[*] --> Received : SOAP Request arrives
+
+state "Message Matching" as matching {
+  Received --> MatchingBySoapAction : Extract SOAPAction header
+  MatchingBySoapAction --> Matched : Found in messagedefinition\n(soapaction column)
+  MatchingBySoapAction --> MatchingByNamespace : No match
+  
+  MatchingByNamespace --> Matched : Found in messagedefinition\n(namespace + messagekey)
+  MatchingByNamespace --> MatchingByElement : No match
+  
+  MatchingByElement --> Matched : Found in messagedefinition\n(elementvalue column)
+  MatchingByElement --> MatchingByXPath : No match
+  
+  MatchingByXPath --> Matched : XPath filter matches\n(filterxpath column)
+  MatchingByXPath --> Unmatched : No match
+}
+
+Matched --> ValidationCheck : messagedefinition_id assigned
+
+state "Validation" as validation {
+  ValidationCheck --> Validating : validationactive = true
+  ValidationCheck --> Validated : validationactive = false
+  
+  Validating --> Validated : Schema validation passed\n(elementdefinition rules)
+  Validating --> ValidationFailed : Schema validation failed
+}
+
+Validated --> TransformationCheck : Look for transformations
+
+state "Transformation" as transformation {
+  TransformationCheck --> Transforming : requesttransformation_id exists\nin channeldefinition
+  TransformationCheck --> Transformed : No transformation needed
+  
+  Transforming --> Transformed : XSLT applied\n(transformationdefinition +\nxsltcontent)
+  Transforming --> TransformationFailed : XSLT error
+}
+
+Transformed --> Routing : Find active channel
+
+state "Routing" as routing {
+  Routing --> RoutedToAdapter : channeldefinition found\n(active = true,\nfiltermessagedefinition_id matches)
+  Routing --> NoRouteFound : No active channel
+  
+  RoutedToAdapter --> Sent : Adapter sends message
+  Sent --> AwaitingResponse : Synchronous service
+  Sent --> Completed : Asynchronous service
+  
+  AwaitingResponse --> ResponseReceived : Provider responds
+  ResponseReceived --> ResponseTransformCheck : Check response transformation
+  
+  ResponseTransformCheck --> ResponseTransforming : responsetransformation_id exists
+  ResponseTransformCheck --> ResponseReady : No transformation
+  
+  ResponseTransforming --> ResponseReady : XSLT applied
+}
+
+ResponseReady --> Logging : Log to logmessage table
+Completed --> Logging
+
+state "Logging" as logging {
+  Logging --> Logged : Store in logmessage\n(messagekey, namespace, message)
+}
+
+Logged --> [*] : Response sent to consumer
+
+' Error states
+Unmatched --> ErrorResponse : 500: Unknown message type
+ValidationFailed --> ErrorResponse : 400: Invalid message
+TransformationFailed --> ErrorResponse : 500: Transformation error
+NoRouteFound --> ErrorResponse : 500: No route configured
+
+ErrorResponse --> Logging : Log error
+ErrorResponse --> [*] : Fault response sent
+
+note right of matching
+  **messagedefinition table**
+  is queried with multiple
+  strategies until a match
+  is found
+  
+  32 message types configured
+end note
+
+note right of transformation
+  **transformationdefinition table**
+  links source → target
+  messagedefinition records
+  
+  5 transformations configured
+  Uses xsltcontent table
+end note
+
+note bottom of routing
+  **channeldefinition table**
+  references messagedefinition
+  via filtermessagedefinition_id
+  
+  14 channels configured
+end note
+
+@enduml
+
+@startuml messagedefinition-deployment
+' ============================================================================
+' DIAGRAM 6: Deployment Diagram - How messagedefinition is used in production
+' ============================================================================
+' Shows physical deployment and data flow
+' Best for: Operations, understanding infrastructure
+
+title CGS Production Deployment\nConfiguration Data Flow
+
+node "Application Server (Tomcat)" {
+  
+  artifact "CGS Service Bus WAR" as cgs_war {
+    component "MessageMatcher" as matcher
+    component "MessageValidator" as validator
+    component "TransformationEngine" as transformer
+    component "ChannelRouter" as router
+  }
+  
+  database "Ehcache (In-Memory)" as cache {
+    folder "MessageDefinitions" as msg_cache {
+      card "32 message types" as msg_count
+    }
+    folder "XSLT Templates" as xslt_cache {
+      card "5 compiled XSLTs" as xslt_count
+    }
+  }
+}
+
+node "Database Server (PostgreSQL)" {
+  database "igp_ontwikkel\\nigp_ontwikkel_cgs_owner" as db {
+    storage "messagedefinition\\n32 rows" as msg_table
+    storage "transformationdefinition\\n5 rows" as trans_table
+    storage "xsltcontent\\n1 row" as xslt_table
+    storage "elementdefinition\\n0 rows" as elem_table
+    storage "channeldefinition\\n14 rows" as channel_table
+    storage "servicecomponentrelation\\n41 rows" as scr_table
+  }
+}
+
+node "Admin Workstation" {
+  component "Archi Desktop" as archi
+  component "DBeaver / SQL Client" as dbeaver
+}
+
+node "Consumer Applications" {
+  component "ROSWOZ" as roswoz
+  component "TERCERA" as tercera
+  component "GEODATA" as geodata
+}
+
+' Startup flow
+cgs_war -down-> db : **1. Startup**\nLoad configuration\n(SELECT * FROM messagedefinition)
+db -up-> cache : **2. Cache**\nStore 32 definitions\nin memory
+
+' Runtime flow
+roswoz -right-> matcher : **3. Runtime**\nSOAP Request
+matcher -down-> msg_cache : **4. Lookup**\nFind by soapaction\n/namespace/element
+msg_cache -down-> validator : **5. Validate**\nmessagedefinition_id
+validator -down-> transformer : **6. Transform**\nif transformation needed
+transformer -down-> xslt_cache : **7. Get XSLT**\ntransformationdefinition_id
+transformer -down-> router : **8. Route**\nto adapter endpoint
+
+' Admin changes
+archi -down-> msg_table : **Admin: Diagram**\nVisual documentation
+dbeaver -down-> msg_table : **Admin: SQL**\nINSERT/UPDATE\nmessage definitions
+dbeaver -down-> trans_table : **Admin: SQL**\nCreate transformations
+dbeaver -down-> xslt_table : **Admin: SQL**\nUpload XSLT stylesheets
+
+msg_table .down.> msg_cache : **Config Change**\nRequires service restart\nto reload cache
+
+note right of cache
+  **Caching Strategy**
+  
+  • Loaded once at startup
+  • Read-only during runtime
+  • No cache invalidation
+    (requires restart)
+  
+  **Performance:**
+  • O(1) lookups
+  • ~1ms per match
+  • Handles 1000+ req/sec
+end note
+
+note left of db
+  **Message Configuration Tables**
+  
+  messagedefinition (32 rows)
+  ├─ elementdefinition (0 rows)
+  └─ transformationdefinition (5 rows)
+      └─ xsltcontent (1 row)
+  
+  **Used by:**
+  • channeldefinition (14 channels)
+  • servicecomponentrelation (41 services)
+  • logmessage (66 logged, matches by key)
+  
+  **Key insight:**
+  messagedefinition is the "schema registry"
+  that makes dynamic routing possible
+end note
+
+note bottom of archi
+  **This ArchiMate model!**
+  
+  The CGS architecture diagrams
+  created earlier provide the
+  strategic view, while these
+  PlantUML diagrams provide the
+  technical implementation details
+end note
+
+@enduml
+
+@startuml messagedefinition-activity
+' ============================================================================
+' DIAGRAM 7: Activity Diagram - Message Type Registration Process
+' ============================================================================
+' Shows the admin workflow for adding a new message type
+' Best for: Understanding configuration procedures
+
+title Adding a New Message Type to CGS\nmessagedefinition configuration workflow
+
+|Administrator|
+start
+:Receive requirement for\nnew service integration;
+:Analyze WSDL/XSD from\nprovider application;
+
+|Technical Analyst|
+:Document message structure;
+note right
+  Extract:
+  • XML namespace
+  • SOAP action
+  • Root element name
+  • Required fields
+end note
+
+:Design message validation rules;
+:Create XSLT transformation\n(if format conversion needed);
+
+|Database Administrator|
+:Open DBeaver/SQL client;
+
+' Check if message exists
+if (Message type already exists?) then (yes)
+  :Skip to service configuration;
+  stop
+else (no)
+  :Generate next ID;
+  
+  :INSERT INTO messagedefinition;
+  note right
+    INSERT INTO messagedefinition (
+      id,
+      messagekey,
+      namespace,
+      soapaction,
+      elementvalue,
+      filterxpath,
+      validationactive,
+      description,
+      changecounter,
+      factorysetting
+    ) VALUES (
+      33,  -- next ID
+      'GetBurgergegevens',
+      'http://www.egem.nl/StUF/sector/bg/0310',
+      'http://schemas.example.nl/bg/GetBurgergegevens',
+      'getBurgergegevens',
+      NULL,
+      true,
+      'StUF-BG 3.10 - Opvragen burgergegevens',
+      1,
+      false
+    );
+  end note
+  
+  if (Need message transformation?) then (yes)
+    :INSERT INTO xsltcontent;
+    note right
+      Store XSLT stylesheet content
+    end note
+    
+    :INSERT INTO transformationdefinition;
+    note right
+      Link source messagedefinition (new)
+      to target messagedefinition (existing)
+      via xsltcontent
+    end note
+  else (no)
+  endif
+  
+  if (Need XML schema validation?) then (yes)
+    repeat
+      :INSERT INTO elementdefinition;
+      note right
+        Define expected elements:
+        • Element name
+        • XPath location
+        • Data type
+        • Required flag
+        • Parent element
+      end note
+    repeat while (More elements?) is (yes)
+    ->no;
+  else (no)
+  endif
+  
+  :Link to servicecomponentrelation;
+  note right
+    UPDATE servicecomponentrelation
+    SET messagedefinitionrequest_id = 33
+    WHERE servicedefinition_id = X;
+  end note
+  
+  :Configure channeldefinition routing;
+  note right
+    UPDATE channeldefinition
+    SET filtermessagedefinition_id = 33
+    WHERE id = Y;
+  end note
+  
+  :COMMIT transaction;
+endif
+
+|Operations Team|
+:Schedule service restart;
+note right
+  messagedefinition cache
+  is loaded at startup only
+end note
+
+:Restart CGS Service Bus;
+:Monitor startup logs;
+
+if (Startup successful?) then (yes)
+  :Verify new message type\nin cache;
+  
+  |Test Team|
+  :Send test SOAP message;
+  
+  if (Message matched?) then (yes)
+    :Verify routing to\ncorrect adapter;
+    
+    if (Transformation applied?) then (yes)
+      :Verify output format;
+    else (no)
+    endif
+    
+    :Check logs in\nlogmessage table;
+    
+    |Administrator|
+    :Document configuration;
+    :Update ArchiMate diagrams;
+    :Update PlantUML docs;
+    stop
+    
+  else (no)
+    :Review matcher logs;
+    |Database Administrator|
+    :Fix messagedefinition\nconfiguration;
+    |Operations Team|
+    :Restart service again;
+  endif
+  
+else (no)
+  :Review startup errors;
+  |Database Administrator|
+  :ROLLBACK changes;
+  |Operations Team|
+  :Restart service;
+  stop
+endif
+
+@enduml

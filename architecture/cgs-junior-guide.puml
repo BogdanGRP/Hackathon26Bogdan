@@ -1,0 +1,344 @@
+@startuml cgs-junior-overview
+' ═══════════════════════════════════════════════════════════════
+'  CGS FOR JUNIORS — "The Post Office Analogy"
+'  Simple overview: What is CGS and how does a message flow?
+' ═══════════════════════════════════════════════════════════════
+
+title **What is CGS?**\nCGS is like a **post office** for software applications.\nApps don't talk to each other directly — they all send messages through CGS,\nwhich figures out **who** should receive it, **translates** it if needed, and **delivers** it.
+
+skinparam backgroundColor #FEFEFE
+skinparam defaultFontSize 12
+skinparam shadowing false
+skinparam roundcorner 15
+skinparam componentStyle rectangle
+skinparam nodesep 60
+skinparam ranksep 40
+skinparam padding 8
+
+' === WHO SENDS MESSAGES? ===
+package "**Who sends messages?**\n(173 registered applications)" as senders #F1F8E9 {
+
+  component "**Tax & Property**\nCBB, CIN, CKD, CMD\nCGA, CBR, CZA" as tax_apps #DCEDC8
+  
+  component "**Citizen Services**\niBurgerzaken\nPortal / KCC\nFrontOffice" as citizen_apps #DCEDC8
+  
+  component "**Internal Systems**\nCMG (Broker)\nCML (National)\nCiPers (Personnel)" as internal_apps #DCEDC8
+  
+  component "**External Partners**\nSquitXO, Corsa\nAlfresco, Decos\nBuitenBeter, JCC" as external_apps #DCEDC8
+}
+
+' === CGS — THE POST OFFICE ===
+package "    " as cgs_box #E3F2FD {
+  
+  component "          **CGS — The Post Office**\n\n          //173 apps · 218 services · 660 authorizations//\n          //376 routing channels · 993 format translations//" as cgs_title #BBDEFB
+
+  component "**1. Are you allowed?**\nCheck if the sender app\nis authorized for this service\n//(serviceusage table: 660 rules)//" as step1 #E3F2FD
+  
+  component "**2. What is this message?**\nIdentify the message type\nby namespace, key, or content\n//(messagedefinition: 2065 types)//" as step2 #E3F2FD
+  
+  component "**3. Translate if needed**\nConvert between formats\nso receiver understands it\n//(transformationdefinition: 993 XSLTs)//" as step3 #E3F2FD
+  
+  component "**4. Route to receiver(s)**\nFind which app(s) should\nget this message\n//(channeldefinition: 376 routes)//" as step4 #E3F2FD
+  
+  component "**5. Deliver**\nSend via the right protocol\n(SOAP, ABAP, Java, ebMS...)\n//(adapterdefinition: 10 protocols)//" as step5 #E3F2FD
+
+  step1 -right-> step2
+  step2 -right-> step3
+  step3 -down-> step4
+  step4 -left-> step5
+}
+
+' === WHO RECEIVES MESSAGES? ===
+package "**Who receives messages?**\n(providers / destinations)" as receivers #FFF3E0 {
+
+  component "**CiVision SAP Apps**\nCBB, CGA, CZA, CIN\n(via ABAP protocol)" as sap_recv #FFE0B2
+  
+  component "**Broker Systems**\nCMG, CML, CMM, CMZ\n(via Java protocol)" as broker_recv #FFE0B2
+  
+  component "**Document Systems**\nAlfresco, Corsa, Decos\n(via CMIS protocol)" as dms_recv #FFE0B2
+  
+  component "**National Government**\nBRP, GBA-V, BV-BSN\nKadaster, LV WOZ, KVK\n(via Digikoppeling)" as national_recv #FFE0B2
+}
+
+' === CONNECTIONS ===
+tax_apps -[#558B2F,bold]-> step1
+citizen_apps -[#558B2F,bold]-> step1
+internal_apps -[#558B2F,bold]-> step1
+external_apps -[#558B2F,bold]-> step1
+
+step5 -[#E65100,bold]-> sap_recv
+step5 -[#E65100,bold]-> broker_recv
+step5 -[#E65100,bold]-> dms_recv
+step5 -[#E65100,bold]-> national_recv
+
+@enduml
+
+
+@startuml cgs-junior-sync-vs-async
+' ═══════════════════════════════════════════════════════════════
+'  CGS FOR JUNIORS — Synchronous vs Asynchronous
+'  "The two ways CGS delivers messages"
+' ═══════════════════════════════════════════════════════════════
+
+title **The Two Ways CGS Delivers Messages**
+
+skinparam backgroundColor #FEFEFE
+skinparam defaultFontSize 12
+skinparam shadowing false
+skinparam roundcorner 15
+skinparam activityBorderColor #37474F
+skinparam activityBackgroundColor #FFFFFF
+
+|#E8F5E9| **SYNCHRONOUS (184 services)** — "I'll wait for the answer" |
+start
+
+:App sends a **question**
+""Example: "Give me the address of citizen X"  "";
+
+:CGS finds the right provider
+and forwards the question;
+
+:Provider answers **immediately**;
+
+:CGS sends the answer
+back to the app;
+
+:App receives the answer
+  ✅ Done!;
+stop
+
+|#FCE4EC| **ASYNCHRONOUS (34 services)** — "Just make sure everyone gets it" |
+start
+
+:App sends a **notification**
+""Example: "Citizen X has moved to a new address"  "";
+
+:CGS immediately confirms receipt
+//"OK, I got it"  (Bv04Bericht)//;
+
+:CGS looks up ALL apps that
+need to know about this;
+note right
+  Example: **StUFOntvangAsynchroonBG**
+  has **29 routing channels**
+  delivering to **17 different apps**!
+  
+  Every app that cares about
+  address changes gets a copy.
+end note
+
+fork
+  :Send copy to **CBB** (taxes);
+fork again
+  :Send copy to **CGA** (addresses);
+fork again
+  :Send copy to **CMG** (broker);
+fork again
+  :Send copy to **CWIZ** (social);
+fork again
+  :Send copies to\n**13 more apps...**;
+end fork
+
+:All providers got their copy
+  ✅ Done!;
+stop
+
+@enduml
+
+
+@startuml cgs-junior-real-example
+' ═══════════════════════════════════════════════════════════════
+'  CGS FOR JUNIORS — A Real Example
+'  "Follow one message from start to finish"
+' ═══════════════════════════════════════════════════════════════
+
+title **Follow a Real Message: "A citizen moves to a new address"**\nThis is the most common flow in CGS (StUFOntvangAsynchroonBG — 29 channels)
+
+skinparam backgroundColor #FEFEFE
+skinparam defaultFontSize 11
+skinparam shadowing false
+skinparam roundcorner 15
+skinparam sequenceMessageAlign center
+
+actor "Municipal\nEmployee" as user
+participant "iBurgerzaken\n//front-end app//" as ibz #C8E6C9
+box "CGS Service Bus" #E3F2FD
+  participant "Authorization" as auth #BBDEFB
+  participant "Message\nMatching" as match #BBDEFB
+  participant "Transformation\nEngine" as transform #BBDEFB
+  participant "Router" as router #90CAF9
+  participant "Delivery" as deliver #90CAF9
+end box
+participant "CBB\n//taxes//" as cbb #FFE0B2
+participant "CGA\n//addresses//" as cga #FFE0B2
+participant "CMG\n//broker//" as cmg #FFF9C4
+participant "14 more\napps..." as others #E0E0E0
+
+== Step 1: Employee registers the move ==
+
+user -> ibz : Registers that citizen\nX moved from A to B
+
+== Step 2: iBurgerzaken notifies CGS ==
+
+ibz -> auth : SOAP message:\n"kennisgevingsBericht"\n(StUF-BG notification)
+note right of auth
+  ""<namespace>http://www.egem.nl/""
+  ""  StUF/sector/bg/0204</namespace>""
+  ""<messagekey>kennisgevingsBericht""
+  ""</messagekey>""
+end note
+
+== Step 3: CGS processes the message ==
+
+auth -> auth : Is iBurgerzaken allowed\nto call this service?\n✅ Yes (found in serviceusage)
+auth --> ibz : "Message received" (Bv04)
+note right: Async = immediate\nconfirmation.\niBurgerzaken\ncan continue working.
+
+auth -> match : Forward message
+match -> match : What type of message?\nMatch by namespace + key\n→ It's a BG kennisgeving!
+
+match -> transform : Message matched
+transform -> transform : Does anyone need\na different format?\n\nCBB speaks StUF **0204** ✅\nCGA speaks StUF **0204** ✅\nCWIZ speaks StUF **0210** ⚠️\n→ Transform 0204→0210 for CWIZ
+
+transform -> router : Original + transformed copies
+
+== Step 4: CGS delivers to ALL registered receivers ==
+
+router -> router : Find all channels for\nStUFOntvangAsynchroonBG\n→ **29 channels found!**
+
+router -> deliver : Route to each channel
+deliver -> cbb : Copy 1 (StUF 0204)\nvia **ABAP** protocol
+deliver -> cga : Copy 2 (StUF 0204)\nvia **ABAP** protocol
+deliver -> cmg : Copy 3 (StUF 0204)\nvia **Java** protocol
+deliver -> others : Copies 4-17\neach via its own\nprotocol & format
+
+== Step 5: Each app processes independently ==
+
+cbb -> cbb : Update tax records\nfor new address
+cga -> cga : Update address\nregistration
+cmg -> cmg : Update broker\ndata store
+others -> others : Each does their\nown thing
+
+note over auth, deliver
+  **Why this matters:**
+  Without CGS, iBurgerzaken would need to know about ALL 17 apps,
+  speak ALL their protocols, and handle ALL their formats.
+  
+  With CGS, iBurgerzaken just sends ONE message in ONE format,
+  and CGS takes care of the rest. If a new app joins tomorrow,
+  you just add a channel — zero code changes in iBurgerzaken.
+end note
+
+@enduml
+
+
+@startuml cgs-junior-message-types
+' ═══════════════════════════════════════════════════════════════
+'  CGS FOR JUNIORS — Message Types Simplified
+'  "The 4 kinds of messages"
+' ═══════════════════════════════════════════════════════════════
+
+title **The 4 Kinds of Messages in CGS**\n//Every message is one of these types//
+
+skinparam backgroundColor #FEFEFE
+skinparam defaultFontSize 12
+skinparam shadowing false
+skinparam roundcorner 15
+skinparam componentStyle rectangle
+
+package "**1. REQUEST** — Asking a question" as req_pkg #E8F5E9 {
+  component "**vraagBericht**\n//\"question message\"//\n\n\"Give me the data of citizen 12345\"\n\"What is the WOZ value of this house?\"\n\"Find all cases for this person\"\n\nUsed **471 times** as the most\ncommon request type" as req #C8E6C9
+}
+
+package "**2. RESPONSE** — The answer" as resp_pkg #E3F2FD {
+  component "**antwoordBericht**\n//\"answer message\"//\n\n\"Here is the data you asked for\"\n\n**synchroonAntwoordBericht** (258×)\nfor synchronous services\n\n**Bv03Bericht** (893×)\nfor async confirmations" as resp #BBDEFB
+}
+
+package "**3. NOTIFICATION** — Telling everyone about a change" as notif_pkg #FFF3E0 {
+  component "**kennisgevingsBericht**\n//\"notification message\"//\n\n\"Citizen X has moved\"\n\"A new case was created\"\n\"Property value changed\"\n\nUsed **354 times** — triggers\nfan-out to many receivers" as notif #FFE0B2
+}
+
+package "**4. FAULT** — Something went wrong" as fault_pkg #FFEBEE {
+  component "**Fo03Bericht / foutBericht**\n//\"error message\"//\n\n\"Service not found\"\n\"You are not authorized\"\n\"Invalid message format\"\n\n**Fo03 is #1 most configured**\n**message (2431×)** — every\nservice must know how\nto report errors" as fault #FFCDD2
+}
+
+req -[hidden]right-> resp
+notif -[hidden]right-> fault
+
+note bottom
+  **The flow:**
+  App sends REQUEST or NOTIFICATION →
+  CGS processes it →
+  Returns RESPONSE (success) or FAULT (error)
+end note
+
+@enduml
+
+
+@startuml cgs-junior-service-groups
+' ═══════════════════════════════════════════════════════════════
+'  CGS FOR JUNIORS — Service Groups
+'  "The 218 services organized into simple groups"
+' ═══════════════════════════════════════════════════════════════
+
+title **CGS Services at a Glance**\n//218 active services organized by what they do//
+
+skinparam backgroundColor #FEFEFE
+skinparam defaultFontSize 11
+skinparam shadowing false
+skinparam roundcorner 15
+skinparam componentStyle rectangle
+skinparam nodesep 30
+skinparam ranksep 25
+
+together {
+  package "**People & Addresses**\nStUF-BG services" as bg #C8E6C9 {
+    component "Ask: \"Who lives at this address?\"\nNotify: \"This person has moved\"\n\n6 services · most-used group\nBiggest fan-out: 29 channels" as bg_desc
+  }
+
+  package "**Cases & Documents**\nStUF-ZKN + CMIS services" as zkn #BBDEFB {
+    component "Ask: \"What cases exist for X?\"\nNotify: \"New case created\"\nStore/retrieve documents\n\n14 services · 2nd most-used\nDMS: Alfresco, Corsa, Decos" as zkn_desc
+  }
+}
+
+together {
+  package "**Tax & Property**\nStUF-WOZ, BZ services" as woz #FFCCBC {
+    component "Ask: \"What's the property value?\"\nNotify: \"Valuation changed\"\nTax items and calculations\n\n7 services · links to LV WOZ" as woz_desc
+  }
+
+  package "**National Registries**\nBRP, GBA-V, BV-BSN" as nat #F8BBD0 {
+    component "Query national person data\nRequest BSN numbers\nSync with national systems\n\n17 services · via Digikoppeling\nGovernment-grade security" as nat_desc
+  }
+}
+
+together {
+  package "**Broker & Distribution**\nCMG, CMM services" as cmg #FFF9C4 {
+    component "Manage data distribution\nCheck authorizations\nPlace & collect messages\n\n7 services · internal plumbing" as cmg_desc
+  }
+
+  package "**Companies**\nNHR, KVK services" as nhr #F0F4C3 {
+    component "Query Chamber of Commerce\nReceive company mutations\nSync business register\n\n11 services · via KVK API" as nhr_desc
+  }
+}
+
+together {
+  package "**Printing & Documents**\nITP, AIA services" as itp #DCEDC8 {
+    component "Generate PDF/DOCX/HTML\nPrinter management\nDocument distribution\n\n13 services · AIA cloud" as itp_desc
+  }
+
+  package "**Social Domain**\nDKD, DUO, UWV, GSD" as social #FFECB3 {
+    component "Benefits & assistance\nSchool absence reports\nEmployment history\n\n16 services · SuwiML format" as social_desc
+  }
+}
+
+together {
+  package "**Government Messaging**\nDigikoppeling, ebMS, CLIQ" as digi #E1BEE7 {
+    component "MijnOverheid Berichtenbox\nDigipoort invoicing\nOmgevingsloket (OLO)\n\n10 services · ebMS protocol" as digi_desc
+  }
+
+  package "**Utilities & Test**\nConfig, Email, FTP, Test" as util #ECEFF1 {
+    component "Send email notifications\nFTP file transfers\nTest connectivity\nOperational info\n\n~15 services" as util_desc
+  }
+}
+
+@enduml
